@@ -33,8 +33,6 @@ extern Modulo595 seteSegmentos;
 
 extern Eeprom_Indka hardDisk;
 
-boolean flag_hora   = false;
-
 extern int8_t displayNumero;
 
 extern Sobressalente74HC595 extra74HC595;
@@ -45,6 +43,7 @@ extern Persistente persistente;
 
 bool thread_vector[8] = { true, true, true, true, true, true, true, true };
 
+bool flag_hora   = false;
 
 /*
 bool flag_auto_relay = false;

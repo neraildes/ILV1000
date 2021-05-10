@@ -76,7 +76,7 @@ String blynkDisplay[MAXDEVICE];
 Eeprom_Indka hardDisk = Eeprom_Indka();
 Modulo595 seteSegmentos(DIO, SCLK, RCLK);
                      
-Shell comandos;
+Shell comandos; 
 uint8_t enterDoKeypad = 0;
 
 
@@ -167,7 +167,7 @@ void setup()
     extra74HC595.init();
     seteSegmentos.clearDisplay();    
     Serial.begin(115200);    
-    comandos.init();
+    comandos.init(); 
     EEPROM.begin(1024);
     analogReadResolution(12);
     //--------------------------------------------------
@@ -186,7 +186,7 @@ void setup()
     thDisplay.onRun(doDisplay);
     thDisplay.setInterval(1);
 
-    controller_0.add(&thDisplay);  //Displays de sete segmentos
+    //controller_0.add(&thDisplay);  //Displays de sete segmentos
 
 
 
@@ -275,24 +275,17 @@ void setup()
 
     
     buzzer = 100;
-    /*
-    while (1) {
-        seteSegmentos.sendDisplay(1.234, PISCA);
-        seteSegmentos.sendDisplay(56.78, NORMAL);
-        seteSegmentos.sendDisplay("NERA", NORMAL);
-        seteSegmentos.sendDisplay(34.56, NORMAL);
-        seteSegmentos.sendSingle(0xAA);
-        //seteSegmentos.sendSingle(0xAA);
-        //seteSegmentos.sendSingle(0xAA);
-        seteSegmentos.show();
-    }
-    */
-   
-
     
-    //emon1.voltage(36, VOLT_CAL, 1.7); //PASSA PARA A FUN��O OS PAR�METROS (PINO ANAL�GIO / VALOR DE CALIBRA��O / MUDAN�A DE FASE)
-   
-
+    for(uint32_t loop=1;loop<13000;loop++) {
+        seteSegmentos.sendDisplay("    ", NORMAL);
+        seteSegmentos.sendDisplay("    ", NORMAL);        
+        seteSegmentos.sendDisplay("    ", NORMAL);
+        seteSegmentos.sendDisplayMessage("ATUAL 1-0-0", NORMAL);
+        
+        seteSegmentos.sendSingle(0xAA);
+        seteSegmentos.show();
+    }  
+    controller_0.add(&thDisplay);  //Displays de sete segmentos
 }
    
 
@@ -509,7 +502,7 @@ void doAutoRelay() {
 
 //========================================================================
 void doShell() {
-    comandos.prompt();
+     comandos.prompt();
 }
 
 
@@ -1029,7 +1022,8 @@ void doLerSensor() {
         float minimo, maximo;
         //emon1.calcVI(17, 25);//FUN��O DE C�LCULO (17 SEMICICLOS, TEMPO LIMITE PARA FAZER A MEDI��O)           
         minimo = ADC_Indka.read_pin(34, AD_MINIMO);
-        maximo = ADC_Indka.read_pin(34, AD_MAXIMO);        
+        maximo = ADC_Indka.read_pin(34, AD_MAXIMO);
+        SensoresAtuadores[escalona].status = NORMAL;
         SensoresAtuadores[escalona].value = ((float)hora)+(minuto/100.0);
     }
     else if (escalona == 1) // Sensor de NTC
@@ -1092,12 +1086,12 @@ void doLerSensor() {
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 bool flag_connected = false;
 void doBlynkRun() {
-    //Blynk.run();
+     //Blynk.run();
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void doBlynkExibe() { 
-     comandos.exibeDados();
+     comandos.exibeDados(); 
 }
 
 

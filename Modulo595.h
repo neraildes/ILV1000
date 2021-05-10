@@ -13,6 +13,7 @@ class Modulo595{
   public:
       Modulo595(uint8_t clk, uint8_t dta, uint8_t lth);
       void    clearDisplay();
+      void    sendDisplayMessage(String text, uint8_t status);
       void    sendDisplay(String text, uint8_t status);
       void    sendDisplay(float nfloat, uint8_t status);
       void    sendPair(uint8_t value, uint8_t q);

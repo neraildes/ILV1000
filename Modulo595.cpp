@@ -4,14 +4,10 @@
 #include "stdio.h"
 #include "string.h"
 #include "Sobressalente74HC595.h"
-
+#include "Blk_terminal.h"
 
 
 extern Sobressalente74HC595 extra74HC595;
-
-
-
-
 
 //=============================================================================================================
 Modulo595::Modulo595(uint8_t dta, uint8_t clk, uint8_t lth)
@@ -42,7 +38,104 @@ void Modulo595::clearDisplay()
          }
      }    
 
+void Modulo595::sendDisplayMessage(String text, uint8_t status)
+{
+     String TextOut;
+
+     TextOut="    "+text;
+     TextOut+="        ";
+     sendDisplay(TextOut, status);
+}
+
+
+     
+
 //====================================================================================
+void Modulo595::sendDisplay(String text, uint8_t status){
+   #define REPEAT 180
+   static int8_t i=0;
+   static int8_t q=0;
+   static int8_t cnt=0;
+   static int16_t repeat=0;  
+   static uint8_t vector[4];   
+   int8_t  ponto=-1;
+   uint8_t pointer;
+   int8_t shift=0;   
+   String  textOut;
+
+
+   pointer=vector[cnt];
+
+   if((text.length()>8)&&(q==0))
+     {
+     if(++repeat==REPEAT)
+       {
+       repeat=0;
+       if(text[pointer+5]==0)
+         {
+         pointer=0;     
+         }
+       pointer++; 
+       vector[cnt]=pointer;
+       //vector[cnt]++;
+       }
+     }
+   else
+     {
+     if((vector[cnt]>8)&&(text.length()<8)) pointer=0;  
+     }
+
+   textOut=text;
+   textOut=textOut.substring(pointer,pointer+5);
+
+   /*
+   if(cnt==2){
+   Serial.print("Pointer=");
+   Serial.print(pointer);
+   Serial.print(" |  Cnt=");
+   Serial.print(cnt);
+   Serial.print("  |q=");
+   Serial.print(q);   
+   Serial.print("  |i=");
+   Serial.print(i);
+   Serial.print("  |textOut = '");
+   Serial.print(textOut);
+   Serial.print("'");
+   }
+   */
+   
+   ponto = textOut.lastIndexOf('.');
+       
+   if (ponto!=-1) shift=1;
+  
+   if(shift)
+       {
+       uint8_t ppp;   
+       textOut[ponto-1]=decode(textOut[i]) & decode('.');//(0x7F);
+       ppp=ponto;
+       while(textOut[ppp])
+          {
+            textOut[ppp]=textOut[ppp+1];   
+            ppp++;  
+          }
+       
+       }
+  
+   sendPair(decode(textOut[i]),3-q);         
+   
+   if(++cnt==4)
+     {
+      cnt=0;
+      q++;
+      q%=4;
+      i++;
+      if(i>3) i=0;
+     }
+}
+
+
+
+/*
 void Modulo595::sendDisplay(String text, uint8_t status)
 {
     static int8_t  ponto = -1;
@@ -92,7 +185,7 @@ void Modulo595::sendDisplay(String text, uint8_t status)
         }
     }
 }
-
+*/
 //=============================================================================================================
 void Modulo595::sendDisplay(float nfloat, uint8_t status)
      {
@@ -103,7 +196,8 @@ void Modulo595::sendDisplay(float nfloat, uint8_t status)
        {
          if (milisegundo % TEMPO_PISCA < (TEMPO_PISCA / 2)) strcpy(chrtexto,"    ");
        }    
-     strtexto = chrtexto;    
+     chrtexto[5]=0;  
+     strtexto = chrtexto;        
      sendDisplay(strtexto, NORMAL);
      }
         
@@ -112,6 +206,17 @@ void Modulo595::sendDisplay(float nfloat, uint8_t status)
 //=============================================================================================================
 void Modulo595::sendPair(uint8_t value, uint8_t q)
      {
+     /* 
+     char display[10]={'_','_','_','_'};
+     display[3-q]=value;
+     display[4]=0;
+
+     Serial.print("  value = ");
+     Serial.print(value);
+     Serial.print("  '");
+     Serial.print(display);
+     Serial.println("'");
+     */
      sendSingle(value);//decode(value)
      sendSingle(transistor(q));
      }
@@ -148,6 +253,7 @@ void Modulo595::show(void)
 
 //=============================================================================================================
 uint8_t Modulo595::decode(uint8_t value){
+   
    switch (value)
           {
           case '0': return 0xC0; break; //03
@@ -173,7 +279,7 @@ uint8_t Modulo595::decode(uint8_t value){
           case 'i': return 0xDF; break;          
           case 'J': return 0xF1; break;
           case 'K': return 0xBF; break;
-          case 'L': return 0xC3; break;
+          case 'L': return 0xC7; break;
           case 'M': return 0xBF; break;
           case 'N': return 0xAB; break;
           case 'O': return 0xC0; break;
