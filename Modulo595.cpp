@@ -187,34 +187,57 @@ uint8_t Modulo595::decode(uint8_t value){
           case '7': return 0XF8; break;
           case '8': return 0X80; break;
           case '9': return 0X90; break;
+          case 'a':
           case 'A': return 0x88; break;
+          case 'b':
           case 'B': return 0x83; break;
           case 'C': return 0xC6; break;
           case 'c': return 0xA7; break;          
+          case 'd':
           case 'D': return 0xA1; break;
+          case 'e':
           case 'E': return 0x86; break;
+          case 'f':
           case 'F': return 0x8E; break;
+          case 'g':
           case 'G': return 0x82; break;
+          case 'h':
           case 'H': return 0x89; break;
           case 'I': return 0xF9; break;
-          case 'i': return 0xDF; break;          
+          case 'i': return 0xDF; break;
+          case 'j':          
           case 'J': return 0xF1; break;
+          case 'k':
           case 'K': return 0xBF; break;
+          case 'l':
           case 'L': return 0xC7; break;
+          case 'm':
           case 'M': return 0xBF; break;
+          case 'n':
           case 'N': return 0xAB; break;
           case 'O': return 0xC0; break;
           case 'o': return 0xA3; break;
+          case 'p':
           case 'P': return 0x8C; break;
+          case 'q':
           case 'Q': return 0x98; break;
+          case 'r':
           case 'R': return 0xAF; break;
+          case 's':
           case 'S': return 0x92; break;
+          case 't':
           case 'T': return 0x87; break;
+          case 'u':
           case 'U': return 0xC1; break;
+          case 'v':
           case 'V': return 0xBF; break;
+          case 'x':
           case 'X': return 0xBF; break;
+          case 'y':
           case 'Y': return 0x91; break;
+          case 'z':
           case 'Z': return 0xBF; break;
+          case 'w':
           case 'W': return 0xBF; break;
           case '-': return 0XBF; break;
           case '.': return 0X7F; break;
