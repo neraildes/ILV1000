@@ -40,6 +40,7 @@
 #include "AD_Converter.h"
 #include "Persistente.h"
 #include "Controladores.h"
+#include "versao.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -47,6 +48,7 @@
 
 #include "EmonLib.h"             // Include Emon Library
 EnergyMonitor emon1;             // Create an instance
+
 
 
 
@@ -75,8 +77,11 @@ int RCLK = 16 ; //Lath
 String blynkDisplay[MAXDEVICE];
 Eeprom_Indka hardDisk = Eeprom_Indka();
 Modulo595 seteSegmentos(DIO, SCLK, RCLK);
-                     
+
+
 Shell comandos; 
+
+
 uint8_t enterDoKeypad = 0;
 
 
@@ -275,15 +280,18 @@ void setup()
 
     
     buzzer = 100;
-    
-    for(uint32_t loop=1;loop<13000;loop++) {
-        seteSegmentos.sendDisplay("    ", NORMAL);
-        seteSegmentos.sendDisplay("    ", NORMAL);        
-        seteSegmentos.sendDisplay("    ", NORMAL);
-        seteSegmentos.sendDisplayMessage("ATUAL 1-0-0", NORMAL);
-        
-        seteSegmentos.sendSingle(0xAA);
-        seteSegmentos.show();
+
+    {
+    char versao[]= FVERSION ;
+        for(uint32_t loop=1;loop<13000;loop++) {
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            seteSegmentos.sendDisplay("    ", NORMAL);        
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            seteSegmentos.sendDisplayMessage( versao, NORMAL);
+            
+            seteSegmentos.sendSingle(0xAA);
+            seteSegmentos.show();
+        }
     }  
     controller_0.add(&thDisplay);  //Displays de sete segmentos
 }
@@ -1091,7 +1099,9 @@ void doBlynkRun() {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void doBlynkExibe() { 
+     #ifdef COM_BLYNK_WIFI
      comandos.exibeDados(); 
+     #endif
 }
 
 

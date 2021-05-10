@@ -87,22 +87,6 @@ void Modulo595::sendDisplay(String text, uint8_t status){
 
    textOut=text;
    textOut=textOut.substring(pointer,pointer+5);
-
-   /*
-   if(cnt==2){
-   Serial.print("Pointer=");
-   Serial.print(pointer);
-   Serial.print(" |  Cnt=");
-   Serial.print(cnt);
-   Serial.print("  |q=");
-   Serial.print(q);   
-   Serial.print("  |i=");
-   Serial.print(i);
-   Serial.print("  |textOut = '");
-   Serial.print(textOut);
-   Serial.print("'");
-   }
-   */
    
    ponto = textOut.lastIndexOf('.');
        
@@ -134,58 +118,6 @@ void Modulo595::sendDisplay(String text, uint8_t status){
 }
 
 
-
-/*
-void Modulo595::sendDisplay(String text, uint8_t status)
-{
-    static int8_t  ponto = -1;
-    static int8_t  escalona = 0;
-    //char   textchar[15];
-
-    if (status == PISCA)
-    {
-        if (milisegundo % TEMPO_PISCA < (TEMPO_PISCA / 2))text = "    ";
-    }
-
-    //text.toCharArray(textchar, 10);
-
-
-    ponto = text.lastIndexOf('.');
-    static int8_t q = 0;
-    static int8_t i = 0;
-    static int8_t shift = 0;
-
-
-    if ((q >= ponto) && (ponto != -1)) shift = 1;
-
-    if ((q) == ponto - 1)
-    {
-        sendSingle(decode(text[i]) & (0X7F)); //texto[i+shift])
-        sendSingle(transistor(3 - q));
-    }
-    else
-    {
-        sendSingle(decode(text[i + shift]));
-        sendSingle(transistor(3 - q));
-    }
-
-    escalona++;
-    //if (escalona == 4)        
-    {
-        escalona = 0;
-        q++;
-        i++;
-        ponto = -1;
-        shift = 0;
-
-        if (q == 5)
-        {
-            q = 0;
-            i = 0;
-        }
-    }
-}
-*/
 //=============================================================================================================
 void Modulo595::sendDisplay(float nfloat, uint8_t status)
      {
@@ -206,17 +138,6 @@ void Modulo595::sendDisplay(float nfloat, uint8_t status)
 //=============================================================================================================
 void Modulo595::sendPair(uint8_t value, uint8_t q)
      {
-     /* 
-     char display[10]={'_','_','_','_'};
-     display[3-q]=value;
-     display[4]=0;
-
-     Serial.print("  value = ");
-     Serial.print(value);
-     Serial.print("  '");
-     Serial.print(display);
-     Serial.println("'");
-     */
      sendSingle(value);//decode(value)
      sendSingle(transistor(q));
      }

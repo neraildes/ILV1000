@@ -45,27 +45,6 @@ bool thread_vector[8] = { true, true, true, true, true, true, true, true };
 
 bool flag_hora   = false;
 
-/*
-bool flag_auto_relay = false;
-bool flag_ler_sensor = false;
-bool flag_blynk_exibe = false;
-bool flag_display = false;
-bool flag_keypad = false;
-bool flag_shell = false;
-bool flag_rtc = false;
-bool flag_blynk_run = false;
-
-            case 0: thPoint = &thAutoRelay; break;
-            case 1: thPoint = &thLerSensor; break;
-            case 2: thPoint = &thBlynkExibe; break;
-            case 3: thPoint = &thDisplay; break;
-            case 4: thPoint = &thKeypad; break;
-            case 5: thPoint = &thShell; break;
-            case 6: thPoint = &thRTC; break;
-            case 7: thPoint = &thBlynkRun; break;
-
-*/
-
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
@@ -77,7 +56,9 @@ Shell::Shell(void)
 
 Blk_terminalClass ObjBlynk;
 void Shell::init(){
-     ObjBlynk.init();      
+     #ifdef COM_BLYNK_WIFI
+     ObjBlynk.init();     
+     #endif 
 }
 
 
@@ -152,7 +133,9 @@ void Shell::prompt(void)
     //Relógio em tempo real
     if (a == 0 && flag_hora) mostraTempo();
 
+    #ifdef COM_BLYNK_WIFI
     ObjBlynk.run();
+    #endif
     
 
     if ((Serial.available()) || (flag_brx==true))
