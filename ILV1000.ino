@@ -283,14 +283,15 @@ void setup()
 
     {
     char versao[]= FVERSION ;
-        for(uint32_t loop=1;loop<13000;loop++) {
+    bool flag_abandona=false;
+        while(1) {
             seteSegmentos.sendDisplay("    ", NORMAL);
             seteSegmentos.sendDisplay("    ", NORMAL);        
             seteSegmentos.sendDisplay("    ", NORMAL);
-            seteSegmentos.sendDisplayMessage( versao, NORMAL);
-            
+            flag_abandona=seteSegmentos.sendDisplayMessage( versao, NORMAL);            
             seteSegmentos.sendSingle(0xAA);
             seteSegmentos.show();
+            if(flag_abandona)break;
         }
     }  
     controller_0.add(&thDisplay);  //Displays de sete segmentos
@@ -1031,12 +1032,12 @@ void doLerSensor() {
         //emon1.calcVI(17, 25);//FUN��O DE C�LCULO (17 SEMICICLOS, TEMPO LIMITE PARA FAZER A MEDI��O)           
         minimo = ADC_Indka.read_pin(34, AD_MINIMO);
         maximo = ADC_Indka.read_pin(34, AD_MAXIMO);
-        SensoresAtuadores[escalona].status = NORMAL;
+        //SensoresAtuadores[escalona].status = NORMAL;
         SensoresAtuadores[escalona].value = ((float)hora)+(minuto/100.0);
     }
     else if (escalona == 1) // Sensor de NTC
     {
-        #define B 3975 
+        #define B 3975.0 
         ADCvalue = ADC_Indka.read_pin(34, AD_MEDIO);       //Faz uma m�dia das entradas
         ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
 
@@ -1050,11 +1051,11 @@ void doLerSensor() {
         temperatura += 1.0 / (25.0 + 273.15);
         temperatura = 1.0 / temperatura;
         temperatura -= 273.15;
-
-        SensoresAtuadores[escalona].value = temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
+      
+        SensoresAtuadores[escalona].value = 1.234;//temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
     }
-    else if (escalona == 2) //Sensor PT100
-    {
+    else if (escalona == 2) //Sensor PT100 CONDENSAADOR
+    {        
         ADCvalue = ADC_Indka.read_pin(39, AD_MEDIO);       //Faz uma m�dia das entradas
         ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
 

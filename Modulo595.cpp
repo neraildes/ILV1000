@@ -38,20 +38,28 @@ void Modulo595::clearDisplay()
          }
      }    
 
-void Modulo595::sendDisplayMessage(String text, uint8_t status)
+uint8_t Modulo595::sendDisplayMessage(String text, uint8_t status)
 {
      String TextOut;
 
      TextOut="    "+text;
      TextOut+="        ";
-     sendDisplay(TextOut, status);
+     if(sendDisplay(TextOut, status))
+       {
+       sendDisplay(TextOut, status);
+       sendDisplay(TextOut, status);
+       sendDisplay(TextOut, status);
+       sendDisplay(TextOut, status); 
+       return 1;
+       }
+    return 0;   
 }
 
 
      
 
 //====================================================================================
-void Modulo595::sendDisplay(String text, uint8_t status){
+uint8_t Modulo595::sendDisplay(String text, uint8_t status){
    #define REPEAT 180
    static int8_t i=0;
    static int8_t q=0;
@@ -62,6 +70,7 @@ void Modulo595::sendDisplay(String text, uint8_t status){
    uint8_t pointer;
    int8_t shift=0;   
    String  textOut;
+   
 
 
    pointer=vector[cnt];
@@ -73,7 +82,9 @@ void Modulo595::sendDisplay(String text, uint8_t status){
        repeat=0;
        if(text[pointer+5]==0)
          {
-         pointer=0;     
+         pointer=0;
+         //vector[cnt]=pointer;
+         return 1;     
          }
        pointer++; 
        vector[cnt]=pointer;
@@ -95,7 +106,7 @@ void Modulo595::sendDisplay(String text, uint8_t status){
    if(shift)
        {
        uint8_t ppp;   
-       textOut[ponto-1]=decode(textOut[i]) & decode('.');//(0x7F);
+       textOut[ponto-1]=decode(textOut[i]) & decode('.');
        ppp=ponto;
        while(textOut[ppp])
           {
@@ -115,6 +126,8 @@ void Modulo595::sendDisplay(String text, uint8_t status){
       i++;
       if(i>3) i=0;
      }
+
+   return 0;
 }
 
 
@@ -242,6 +255,7 @@ uint8_t Modulo595::decode(uint8_t value){
           case '-': return 0XBF; break;
           case '.': return 0X7F; break;
           case ' ': return 0xFF; break;
+          case '_': return 0xF7; break;
           default : return value; break;
 
           }

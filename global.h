@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-//#define COM_BLYNK_WIFI
+#define COM_BLYNK_WIFI
 
 #define MAXDEVICE 4 //Numero máximo de dispositivos
 
