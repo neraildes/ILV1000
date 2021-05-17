@@ -22,7 +22,7 @@ class Modulo595{
       void    pulse(void);
       void    show(void);
       uint8_t transistor(uint8_t value);
-      uint8_t decode(uint8_t value);
+      uint8_t codigo(uint8_t value);
       int8_t  findChar(char txt[10], char c);
   private:
       uint8_t _clk;

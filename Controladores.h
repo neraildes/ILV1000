@@ -34,16 +34,19 @@ typedef struct {
                uint8_t relayPin;
                void powerRelay(int8_t pin, uint8_t funcao)
                     {
+                      
                     uint8_t auxiliar; 
-                    auxiliar=pow(2,pin);
+                    auxiliar=pow(2,pin);                    
+                    
                     if(funcao==HIGH)
                       {     
                       extra74HC595.chip.value &= ~auxiliar;
-                      }
+                      }                      
                     else if(funcao==LOW)
                            {                          
                            extra74HC595.chip.value |= auxiliar;
-                           }                                             
+                           }  
+                                                                      
                     }
                uint8_t relaySentido;
                uint8_t modo;

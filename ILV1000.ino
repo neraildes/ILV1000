@@ -123,6 +123,9 @@ uint8_t funcao = FUNCAO_NONE;
 uint8_t funcaoMemo = FUNCAO_NONE;
 int8_t autorestore = -1;
 
+extern bool flag_brx;
+extern String bufferBlynk;
+
 
 Thread thGrava10minutos;
 Thread thProcesso;
@@ -150,7 +153,8 @@ void doBlynkRun();
 void doShell();
 void doProcesso();
 void doAutoRelay();
-
+void exibeRevisao();
+void debugFlags();
 
 
 
@@ -158,10 +162,8 @@ void doAutoRelay();
 
 // The setup() function runs once each time the micro-controller starts
 void setup()
-{
-
-
-    //delay(500);
+{   
+    Serial.begin(115200);
     pinMode(LED_BLINK, OUTPUT);
     pinMode(PIN_BUZZER, OUTPUT);
     pinMode(2, OUTPUT);
@@ -169,21 +171,32 @@ void setup()
     pinMode(13, INPUT);
     pinMode(39, INPUT);
     pinMode(36, INPUT);
+
+
+    //flag_condensador=0;
+    //flag_vacuo=0;
+    //flag_aquecimento=0;
+    //flag_comum=0;
+    //doProcesso();    
+   
+    seteSegmentos.clearDisplay();     
     extra74HC595.init();
-    seteSegmentos.clearDisplay();    
-    Serial.begin(115200);    
-    comandos.init(); 
+    comandos.init();  
+    
     EEPROM.begin(1024);
     analogReadResolution(12);
     //--------------------------------------------------
     persistente.init(); //Inicializa dados persistentes
-
-    //--------------------------------------------------  
-          
-    //emon1.voltage(36, 234.26, 1.7);  // Voltage: input pin, calibration, phase_shift
-    for (uint8_t i = 0; i < MAXDEVICE; i++) doLerSensor();
     startTimer();
-    //---------------------------
+    //--------------------------------------------------  
+
+    exibeRevisao();
+
+  
+    for (uint8_t i = 0; i < MAXDEVICE; i++) doLerSensor();
+   
+    //--------------------------------------------------
+    
 
     //====================== THREADS PARA O NUCLEO 0 ===========================
 
@@ -191,7 +204,7 @@ void setup()
     thDisplay.onRun(doDisplay);
     thDisplay.setInterval(1);
 
-    //controller_0.add(&thDisplay);  //Displays de sete segmentos
+    controller_0.add(&thDisplay);  //Displays de sete segmentos
 
 
 
@@ -202,8 +215,6 @@ void setup()
     thBlynkRun.onRun(doBlynkRun);
     thBlynkRun.setInterval(2);
 
-    thAutoRelay.onRun(doAutoRelay);
-    thAutoRelay.setInterval(400);
 
     thLerSensor.onRun(doLerSensor);
     thLerSensor.setInterval(500);
@@ -217,12 +228,19 @@ void setup()
     thRTC.onRun(doRTC);
     thRTC.setInterval(1);
 
+    //-------------------------------Métodos ligados a processo------------------------------------------
     thProcesso.onRun(doProcesso);
     thProcesso.setInterval(350);
+    //thProcesso.enabled=false;
 
     thGrava10minutos.onRun(doGrava10minutos);
     thGrava10minutos.setInterval(1000*60*10); //Grava após 10 minutos
+    thGrava10minutos.enabled=false;
 
+    thAutoRelay.onRun(doAutoRelay);
+    thAutoRelay.setInterval(400);
+    thAutoRelay.enabled=false;    
+    //----------------------------------------------------------------------------------------------------    
     controller_1.add(&thBlynkRun);
     controller_1.add(&thAutoRelay);
     controller_1.add(&thLerSensor);
@@ -234,7 +252,8 @@ void setup()
     controller_1.add(&thGrava10minutos);
     //==========================================================================
 
-
+    
+     
     //-------APAGAR DEPOIS DE TESTES (FIX)----------
     /*
     SensoresAtuadores[VOLTIMETRO].value = 125.3;
@@ -243,7 +262,8 @@ void setup()
     SensoresAtuadores[SENSOR_NTC].value = 17.9;
     */
     //----------------------------------------------
-
+    
+    /*
     for (uint8_t i = 0; i < MAXDEVICE; i++)
     {
         SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
@@ -253,7 +273,8 @@ void setup()
         SensoresAtuadores[i].power.relayPin = 2;
         SensoresAtuadores[i].value = 25.0;
     }
-
+    */
+    
     //cria uma tarefa que ser� executada na fun��o coreTaskTwo, com prioridade 2 e execu��o no n�cleo 0
     //coreTaskTwo: vigiar o bot�o para detectar quando pression�-lo
     xTaskCreatePinnedToCore(
@@ -280,21 +301,6 @@ void setup()
 
     
     buzzer = 100;
-
-    {
-    char versao[]= FVERSION ;
-    bool flag_abandona=false;
-        while(1) {
-            seteSegmentos.sendDisplay("    ", NORMAL);
-            seteSegmentos.sendDisplay("    ", NORMAL);        
-            seteSegmentos.sendDisplay("    ", NORMAL);
-            flag_abandona=seteSegmentos.sendDisplayMessage( versao, NORMAL);            
-            seteSegmentos.sendSingle(0xAA);
-            seteSegmentos.show();
-            if(flag_abandona)break;
-        }
-    }  
-    controller_0.add(&thDisplay);  //Displays de sete segmentos
 }
    
 
@@ -434,33 +440,13 @@ void doGrava10minutos(){
 //------------------------------------------------------------------------
 uint8_t memoFlags; //fix deve ser inicializado em setup
 void doProcesso(){
-
+       
      if(memoFlags!=(extra74HC595.chip.value & 0b11111110))
        {
-       //delay(2000); 
        Serial.print("Gravando Status (Por mudança de estado.)...");
        Serial.println(extra74HC595.chip.value, BIN);
        persistente.save();
        memoFlags=extra74HC595.chip.value; 
-       }
-  
-     if(flag_condensador) 
-       {
-       Relay_Power(CONDENSADOR, HIGH);
-       }
-     else
-       { 
-       Relay_Power(CONDENSADOR, LOW);
-       }
-
-
-     if(flag_vacuo) 
-       {
-       Relay_Power(VACUOMETRO, HIGH);
-       } 
-     else
-       {
-       Relay_Power(VACUOMETRO, LOW);
        }
 
 }
@@ -649,8 +635,11 @@ void Exibe_Display() {
                 }
             }
             else
-            {
-                seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
+            {   
+                if(counter==0)
+                   seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, NORMAL);
+                else   
+                   seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
             }
         }
     }
@@ -685,7 +674,139 @@ void Exibe_Display() {
 void executaTarefa(uint32_t codigo, float parametro) {
     //codigo /= 1000;
     parametro /= 1000.0;
-    if (codigo == CODE_DEFAULT_FACTORE)
+    if(displayNumero==0)
+      {
+      Serial.println("Entrou em display = 0");  
+      funcao = FUNCAO_NONE;
+      tempoDecorrido=0;
+      autorestore=0;
+      SensoresAtuadores[displayNumero].status = NORMAL;
+      return;  
+      }
+    else if(codigo==CODE_OFFSET_SETAR) //1
+    {
+        Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
+        SensoresAtuadores[displayNumero].offset = parametro;
+        hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro);        
+    }
+    else if(codigo==CODE_OFFSET_VIEW) //2
+    {
+        funcao = FUNCAO_NONE;
+        SaidaAutomatica(SETA);
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem,"OFF.S");
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 8);
+        Serial.printf("Voce esta visualizando o Offset");        
+    }
+    else if(codigo==CODE_SETPOINT_SETAR) //3
+    {
+        Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
+        strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
+        SensoresAtuadores[displayNumero].setpoint = parametro;
+        hardDisk.EEPROMWriteFloat(12 * displayNumero + 0, parametro);  //12 * i + 0
+    }
+    else if(codigo==CODE_SETPOINT_VIEW) //4
+    {
+        funcao = FUNCAO_NONE;
+        SaidaAutomatica(SETA);
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 0);
+        Serial.printf("Voce esta visualizando o SetPoint"); 
+    }
+    else if(codigo==CODE_HISTERESE_SETAR) //5
+    {
+        Serial.printf("Voce setou a histerese em %3.3f *C\n", parametro);
+        strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
+        SensoresAtuadores[displayNumero].histerese = parametro;
+        hardDisk.EEPROMWriteFloat(12 * displayNumero + 4, parametro);  //12 * i + 4
+    }
+    else if(codigo==CODE_HISTERESE_VIEW) //6
+    {
+        funcao = FUNCAO_NONE;
+        SaidaAutomatica(SETA);
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 4);
+        Serial.printf("Voce esta visualizando o Histerese.");        
+    }
+    else if(codigo==CODE_CONDENSADOR_ON) //10
+    {
+        relay_condensador = !true;          
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"ON  ");
+        funcao = FUNCAO_SHOWMESSAGE;
+    }
+    else if(codigo==CODE_CONDENSADOR_OFF) //11
+    {
+        relay_condensador = !false;
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
+        funcao = FUNCAO_SHOWMESSAGE;
+    }
+    else if(codigo==CODE_VACCUM_ON) //12
+    {
+        relay_vaccum = !true;
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"ON  ");
+        funcao = FUNCAO_SHOWMESSAGE;        
+    }
+    else if(codigo==CODE_VACCUM_OFF) //13
+    {
+        relay_vaccum = !false;
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
+        funcao = FUNCAO_SHOWMESSAGE;        
+    }
+    else if(codigo==CODE_AQUECIMENTO_ON) //14
+    {
+        relay_aquecimento = !true;
+        relay_comum = !true;
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"ON  ");
+        funcao = FUNCAO_SHOWMESSAGE;        
+    }
+    else if(codigo==CODE_AQUECIMENTO_OFF) //15
+    {
+        relay_aquecimento = !false;
+        relay_comum = !false;
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
+        funcao = FUNCAO_SHOWMESSAGE;        
+    }
+    else if(codigo==CODE_DATALOG_ON)
+    {
+        //Colocar função aqui.
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"ON  ");
+        funcao = FUNCAO_SHOWMESSAGE; 
+    }
+    else if(codigo==CODE_DATALOG_OFF)
+    {
+        //Colocar Funcao aqui.
+        tempoDecorrido=5000;
+        SensoresAtuadores[displayNumero].status = DINAMICO;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
+        funcao = FUNCAO_SHOWMESSAGE; 
+    }
+    else if(codigo==CODE_LIOFILIZAR_AUTO)
+    {
+        tempoDecorrido=3000;        
+        flag_processo_modo = !flag_processo_modo;
+        if(flag_processo_modo)
+           strcpy(SensoresAtuadores[displayNumero].mensagem1," ON ");
+        else
+           strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");           
+        funcao = FUNCAO_SHOWMESSAGE;
+    }
+    else if(codigo==CODE_DEFAULT_FACTORE)
     {
         hardDisk.EEPROMWriteFloat(0, 127.0);  //SetPoint Volts
         hardDisk.EEPROMWriteFloat(4, 15.0);   //Histerese Volts
@@ -712,37 +833,20 @@ void executaTarefa(uint32_t codigo, float parametro) {
             SensoresAtuadores[i].status = NORMAL;
         }
         funcao = FUNCAO_NONE;
-        Serial.println("Valores padrao de fabrica carregados!");
-    }     
-    else if (codigo == CODE_LIOFILIZAR_AUTO)
+        Serial.println("Valores padrao de fabrica carregados!");        
+    }
+    else if(codigo==CODE_NULL)
     {
-        tempoDecorrido=3000;        
-        flag_processo_modo = !flag_processo_modo;
-        if(flag_processo_modo)
-           strcpy(SensoresAtuadores[displayNumero].mensagem1," ON ");
-        else
-           strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");           
         funcao = FUNCAO_SHOWMESSAGE;
-    }
-    else if (codigo == CODE_OFFSET_SETAR)
-    {
-        Serial.printf("Voce setou o offset de condensador em %3.3f *C\n", parametro);
-        SensoresAtuadores[displayNumero].offset = parametro;
-        hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro);
-    }
-    else if (codigo == CODE_OFFSET_VIEW)
-    {
-        funcao = FUNCAO_NONE;
         SaidaAutomatica(SETA);
-        SensoresAtuadores[displayNumero].status = DINAMICO;
-        strcpy(SensoresAtuadores[displayNumero].mensagem,"OFF.S");
-        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 8);
-        Serial.printf("Voce esta visualizando o Offset");
-    }
-    else
-    {
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"NULL");
+        Serial.printf("Voce entrou com parâmetro nulo!", parametro);
+        SensoresAtuadores[displayNumero].offset = parametro;
+        hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro);  
+        buzzer=1000;
         Serial.println("Codigo invalido!");
     }
+
 
 }
 
@@ -771,8 +875,27 @@ void FormaNumero(float* number) {
 //SetPoint do Sistema
 void Pressionou_a_Tecla_A() {
 
-    flag_condensador = !flag_condensador;
+     relay_condensador = !relay_condensador;
+      
+     
+     /*
+     static bool flag_estado=false;
 
+     if(flag_estado)
+       {
+       flag_estado=false; 
+       flag_brx=true;
+       bufferBlynk="relay condensador on"; 
+       }
+     else
+       {
+       flag_estado=true; 
+       flag_brx=true;
+       bufferBlynk="relay condensador off"; 
+       }
+     */
+
+       
     /*
     funcao = FUNCAO_SETPOINT;
     for (int8_t i = 0; i < MAXDEVICE; i++)    
@@ -796,9 +919,26 @@ void Pressionou_a_Tecla_A() {
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //Histerese do sistema
 void Pressionou_a_Tecla_B() {
-    static int8_t displayMemo = 0;
+     
+     relay_vaccum = !relay_vaccum;
+    
+     /*  
+     static bool flag_estado=false;
 
-    flag_vacuo = !flag_vacuo;
+     if(flag_estado)
+       {
+       flag_estado=false; 
+       flag_brx=true;
+       bufferBlynk="relay vacuo on"; 
+       }
+     else
+       {
+       flag_estado=true; 
+       flag_brx=true;
+       bufferBlynk="relay vacuo off"; 
+       }    
+       */
+       
     /*
     funcao = FUNCAO_HISTERESE;
     decimal = 0.01;
@@ -924,18 +1064,45 @@ void Pressionou_Tecla_Sharp()
 
             switch((uint16_t)codigo)
             {
-              case CODE_LIOFILIZAR_AUTO:
-                   strcpy(texto,"AUTO");
-                   break;              
+              case CODE_CONDENSADOR_ON:
+              case CODE_CONDENSADOR_OFF:  
+                   strcpy(texto,"Cond.");
+                   break;
+              case CODE_VACCUM_ON:                
+              case CODE_VACCUM_OFF:
+                   strcpy(texto,"PRES.");
+                   break;
+              case CODE_AQUECIMENTO_ON:
+              case CODE_AQUECIMENTO_OFF:                   
+                   strcpy(texto,"CALO.");
+                   break;
+              case CODE_DATALOG_ON:
+              case CODE_DATALOG_OFF:                   
+                   strcpy(texto,"D.LOG");
+                   break;
               case CODE_DEFAULT_FACTORE: 
                    strcpy(texto,"DEFA.");
-                   break;
+                   break;                   
+              case CODE_LIOFILIZAR_AUTO:
+                   strcpy(texto,"AUTO");
+                   break;   
               case CODE_OFFSET_SETAR: 
-                   strcpy(texto,"OFF.S");
-                   break;
               case CODE_OFFSET_VIEW: 
                    strcpy(texto,"OFF.S");
+                   break; 
+              case CODE_SETPOINT_SETAR: 
+              case CODE_SETPOINT_VIEW: 
+                   strcpy(texto,"SET.P");
                    break;
+              case CODE_HISTERESE_SETAR:
+              case CODE_HISTERESE_VIEW:              
+                   strcpy(texto,"HIST");
+                   break;              
+              default:
+                   codigo = CODE_NULL;
+                   strcpy(texto,"CODE");
+                   break;              
+                                    
             }
          
             strcpy(SensoresAtuadores[displayNumero].mensagem,texto);
@@ -943,16 +1110,28 @@ void Pressionou_Tecla_Sharp()
             SensoresAtuadores[displayNumero].temp = 0;
             enterDoKeypad++;
 
+            //Lista de comandos sem parâmetros
             switch((uint16_t)codigo)
             {
+            case CODE_NULL:  
+            case CODE_CONDENSADOR_ON:
+            case CODE_CONDENSADOR_OFF:
+            case CODE_VACCUM_ON:
+            case CODE_VACCUM_OFF:
+            case CODE_AQUECIMENTO_ON:
+            case CODE_AQUECIMENTO_OFF:
+            case CODE_DATALOG_ON:
+            case CODE_DATALOG_OFF:    
             case CODE_DEFAULT_FACTORE:
             case CODE_OFFSET_VIEW: 
             case CODE_LIOFILIZAR_AUTO:
+            case CODE_SETPOINT_VIEW:
+            case CODE_HISTERESE_VIEW:
                  executaTarefa(codigo, 0);
-                 enterDoKeypad = 0; 
+                 enterDoKeypad = 0;
                  break;         
             }
-            
+             
         }
         else
         {
@@ -1028,12 +1207,28 @@ void doLerSensor() {
     //--------------------------------
     if (escalona == 0)
     {
-        float minimo, maximo;
-        //emon1.calcVI(17, 25);//FUN��O DE C�LCULO (17 SEMICICLOS, TEMPO LIMITE PARA FAZER A MEDI��O)           
-        minimo = ADC_Indka.read_pin(34, AD_MINIMO);
-        maximo = ADC_Indka.read_pin(34, AD_MAXIMO);
-        //SensoresAtuadores[escalona].status = NORMAL;
-        SensoresAtuadores[escalona].value = ((float)hora)+(minuto/100.0);
+        String tempo;
+        char   tempoChar[10];       
+        if(hora<10)
+          {
+          strcpy(tempoChar,"0");
+          tempo=String(hora,HEX);
+          tempoChar[1]=tempo[0];          
+          }
+        else
+          {
+          strcpy(tempoChar,"");  
+          tempo=String(hora,DEC);
+          tempoChar[0]=tempo[0];            
+          tempoChar[1]=tempo[1];           
+          }           
+        tempo=String(minuto/100.0,DEC);
+        tempoChar[2]=tempo[1];
+        tempoChar[3]=tempo[2];
+        tempoChar[4]=tempo[3];
+        tempoChar[5]=0;
+        
+        strcpy(SensoresAtuadores[escalona].mensagem,tempoChar);
     }
     else if (escalona == 1) // Sensor de NTC
     {
@@ -1052,7 +1247,7 @@ void doLerSensor() {
         temperatura = 1.0 / temperatura;
         temperatura -= 273.15;
       
-        SensoresAtuadores[escalona].value = 1.234;//temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
+        SensoresAtuadores[escalona].value = temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
     }
     else if (escalona == 2) //Sensor PT100 CONDENSAADOR
     {        
@@ -1137,3 +1332,43 @@ void doRTC() {
     }
 
 }
+
+
+void exibeRevisao()
+    {
+    char versao[]=FVERSION ;
+    bool flag_abandona=false;
+        while(1) {
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            seteSegmentos.sendDisplay("    ", NORMAL);        
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            flag_abandona=seteSegmentos.sendDisplayMessage("JJ CIENTIFICA", NORMAL);            
+            seteSegmentos.sendSingle(extra74HC595.chip.value);
+            seteSegmentos.show();
+            if(flag_abandona)break;
+        }    
+        while(1) {
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            seteSegmentos.sendDisplay("    ", NORMAL);        
+            seteSegmentos.sendDisplay("    ", NORMAL);
+            flag_abandona=seteSegmentos.sendDisplayMessage(versao, NORMAL);            
+            seteSegmentos.sendSingle(extra74HC595.chip.value);
+            seteSegmentos.show();
+            if(flag_abandona)break;
+        }
+    }
+
+
+
+void debugFlags(){
+     Serial.println(extra74HC595.chip.value,BIN);
+     Serial.print("flag_comum=");  
+     //Serial.println(flag_comum);
+     Serial.print("flag_condensador=");
+     //Serial.println(flag_condensador);
+     Serial.print("flag_aquecimento=");
+     //Serial.println(flag_aquecimento);
+     Serial.print("flag_vacuo=");
+     //Serial.println(flag_vacuo);
+}
+    

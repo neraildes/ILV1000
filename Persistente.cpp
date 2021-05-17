@@ -14,7 +14,7 @@ Persistente::Persistente(){
 
 void Persistente::init(){
      restore(); //Restaura StatusGen.
-     extra74HC595.chip.value = statusgen.value;
+     extra74HC595.chip.value = 0b00011110;     
      memoFlags = statusgen.value; 
 }
 

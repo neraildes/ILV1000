@@ -32,7 +32,7 @@ void Modulo595::clearDisplay()
          sendDisplay("    ", NORMAL);
          sendDisplay("    ", NORMAL);
          sendDisplay("    ", NORMAL);
-         sendSingle(extra74HC595.chip.value);
+         sendSingle(0b00011110);
          show();
          delay(1);
          }
@@ -67,28 +67,30 @@ uint8_t Modulo595::sendDisplay(String text, uint8_t status){
    static int16_t repeat=0;  
    static uint8_t vector[4];   
    int8_t  ponto=-1;
-   uint8_t pointer;
-   int8_t shift=0;   
-   String  textOut;
+   int8_t  pointer;
+   uint8_t shift=0;
+   char  textOut[50];
+   uint8_t indexT=0;    
+   uint8_t indexO=0;
+
+   //text="13.45";
    
-
-
    pointer=vector[cnt];
+   
 
    if((text.length()>8)&&(q==0))
      {
      if(++repeat==REPEAT)
        {
        repeat=0;
-       if(text[pointer+5]==0)
+       if(text[pointer+6]==0)
          {
          pointer=0;
-         //vector[cnt]=pointer;
+         vector[cnt]=pointer;
          return 1;     
          }
        pointer++; 
        vector[cnt]=pointer;
-       //vector[cnt]++;
        }
      }
    else
@@ -96,35 +98,37 @@ uint8_t Modulo595::sendDisplay(String text, uint8_t status){
      if((vector[cnt]>8)&&(text.length()<8)) pointer=0;  
      }
 
-   textOut=text;
-   textOut=textOut.substring(pointer,pointer+5);
    
-   ponto = textOut.lastIndexOf('.');
-       
-   if (ponto!=-1) shift=1;
+   //textOut="";
+   indexT=0;
+   indexO=0;
+   while(1)
+      {
+        
+      if(text[indexT+1]=='.')
+        {
+        textOut[indexO]=codigo(text[indexT])&codigo('.'); 
+        indexT+=1;
+        }
+     else
+        {
+        textOut[indexO]=codigo(text[indexT]);
+        }
+       indexT++;
+       indexO++;               
+       if(indexT>=text.length())break;
+      }      
+      textOut[indexO]=0;
   
-   if(shift)
-       {
-       uint8_t ppp;   
-       textOut[ponto-1]=decode(textOut[i]) & decode('.');
-       ppp=ponto;
-       while(textOut[ppp])
-          {
-            textOut[ppp]=textOut[ppp+1];   
-            ppp++;  
-          }
-       
-       }
-  
-   sendPair(decode(textOut[i]),3-q);         
-   
+   sendPair(textOut[pointer+i],3-q);
+     
    if(++cnt==4)
      {
       cnt=0;
       q++;
       q%=4;
       i++;
-      if(i>3) i=0;
+      if(i>3)i=0;
      }
 
    return 0;
@@ -186,7 +190,7 @@ void Modulo595::show(void)
     }
 
 //=============================================================================================================
-uint8_t Modulo595::decode(uint8_t value){
+uint8_t Modulo595::codigo(uint8_t value){
    
    switch (value)
           {

@@ -37,6 +37,9 @@
 #define ADD_STATUSGEN         0x24  //1 byte
 #define ADD_HORA_PROCESSO     0x25  //1 byte
 #define ADD_MINUTO_PROCESSO   0x26  //1 byte
+//(12 * i + 0) SETPOINT
+//(12 * i + 4) HISTERESE
+//(12 * i + 8) OFFSET
 
 
 //FUNCOES DO TECLADO
@@ -80,10 +83,26 @@ const String SUFIXO[4] = { "V.",
 
 
 //---------------CODIGOS PARA DECODIFICACAO DO TECLADO MEMBRANA------------------
-#define CODE_LIOFILIZAR_AUTO  1234
+#define CODE_NULL                0
+#define CODE_OFFSET_SETAR        1
+#define CODE_OFFSET_VIEW         2
+#define CODE_SETPOINT_SETAR      3
+#define CODE_SETPOINT_VIEW       4
+#define CODE_HISTERESE_SETAR     5
+#define CODE_HISTERESE_VIEW      6
+
+#define CODE_CONDENSADOR_ON     10
+#define CODE_CONDENSADOR_OFF    11
+#define CODE_VACCUM_ON          12
+#define CODE_VACCUM_OFF         13
+#define CODE_AQUECIMENTO_ON     14
+#define CODE_AQUECIMENTO_OFF    15
+#define CODE_DATALOG_ON         16
+#define CODE_DATALOG_OFF        17
+
+#define CODE_LIOFILIZAR_AUTO   100
 #define CODE_DEFAULT_FACTORE   145
-#define CODE_OFFSET_SETAR       10
-#define CODE_OFFSET_VIEW        11
+
 
 
 

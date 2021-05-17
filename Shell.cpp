@@ -307,7 +307,7 @@ void Shell::prompt(void)
                   }
                 else if(parametro=="COMUM")
                   {
-                  releNum=SENSOR_NTC;     
+                  releNum=COMUM;    
                   } 
 
                 elevado=pow(2,releNum);          
@@ -324,6 +324,7 @@ void Shell::prompt(void)
                     persistente.statusgen.value &= ~elevado;
                     Relay_Power(releNum, LOW);
                 }
+               
             }            
         }
         else if (parametro=="DEVICES")
@@ -403,7 +404,7 @@ void Shell::prompt(void)
             String  ss;
             hh = extraiProximoParametro(&buffer, ':');
             mm = extraiProximoParametro(&buffer, ':');
-            ss = extraiProximoParametro(&buffer, ':');
+            ss = buffer;
 
             if ((parametro == "TIME")&&(ss==""))
             {
