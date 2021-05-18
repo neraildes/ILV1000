@@ -432,24 +432,124 @@ void Gerenciador_de_Tempo() {
 
 //------------------------------------------------------------------------
 void doGrava10minutos(){
-     Serial.println("Gravando Status (Por tempo 10 minutos)...");
-     persistente.save();
-     delay(1000);
+     if(flag_processo_auto==true)
+       {
+       Serial.println("Gravando Status (Por tempo 10 minutos)...");
+       persistente.save();
+       delay(1000);
+       }
 }
 
 //------------------------------------------------------------------------
 uint8_t memoFlags; //fix deve ser inicializado em setup
 void doProcesso(){
        
-     if(memoFlags!=(extra74HC595.chip.value & 0b11111110))
+     if(memoFlags!=(persistente.statusgen.value & 0b11100001))
        {
        Serial.print("Gravando Status (Por mudança de estado.)...");
-       Serial.println(extra74HC595.chip.value, BIN);
+       Serial.println(persistente.statusgen.value, BIN);
        persistente.save();
-       memoFlags=extra74HC595.chip.value; 
+       memoFlags=persistente.statusgen.value & 0b11100001;
        }
 
+        
+       if(flag_processo_auto==true)
+         {
+         
+         flag_condensador=true; 
+         for(uint8_t i=1; i<MAXDEVICE; i++)
+            {
+            SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
+            SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
+            SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
+            }
+                            
+           if(Relay_Valor_Composto(CONDENSADOR)<Relay_SetPoint(CONDENSADOR))
+              {
+              flag_vacuo=true; 
+              if(Relay_Valor_Composto(VACUOMETRO)<Relay_SetPoint(VACUOMETRO))
+                {
+                flag_aquecimento=true;    
+                }
+              }
+           else
+              {
+              flag_vacuo=false; 
+              if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))
+                {
+                flag_aquecimento=false;    
+                }                  
+              }
+              
+          
+         if(flag_condensador==true) Relay_Power(CONDENSADOR, HIGH); else Relay_Power(CONDENSADOR, LOW) ;
+         if(flag_vacuo==true) Relay_Power(VACUOMETRO, HIGH); else Relay_Power(VACUOMETRO, LOW) ;
+         if(flag_aquecimento) Relay_Power(SENSOR_NTC, HIGH); else Relay_Power(SENSOR_NTC, LOW) ; 
+         if(flag_aquecimento) Relay_Power(COMUM, HIGH); else Relay_Power(COMUM, LOW) ;             
+         
+         }
+       
+
+
 }
+
+
+
+/*
+//------------------------controle de potencia utilizando os reles---------------------------------------
+#define RELAY_SOBE                10
+#define RELAY_DESCE               20
+#define RELAY_ESTADO_INATIVO      30
+#define RELAY_ESTADO_ATIVO        40
+#define RELAY_AQUECER             50
+#define RELAY_REFRIGERAR          60
+#define Relay_Status(x)           SensoresAtuadores[(x)].power.relayStatus  //SOBE ou DESCE
+#define Relay_Power(x, y)         SensoresAtuadores[(x)].power.powerRelay(x, y) //HIGH ou LOW (Liga/Desliga)
+#define Relay_Valor_Simples(x)    SensoresAtuadores[(x)].valorDeLeitura(SIMPLES) //Falor real mais o offset
+#define Relay_Valor_Composto(x)   SensoresAtuadores[(x)].valorDeLeitura(COMPOSTO) //Falor real mais o offset
+#define Relay_SetPoint(x)         SensoresAtuadores[(x)].setpoint  //setpoint
+#define Relay_Histerese(x)        SensoresAtuadores[(x)].histerese //histerese
+#define Relay_OffSet(x)           SensoresAtuadores[(x)].offset //offset
+#define Relay_Setagem_Baixa(x)    SensoresAtuadores[(x)].setpoint-SensoresAtuadores[(x)].histerese //Limite inferior
+#define Relay_Setagem_Alta(x)     SensoresAtuadores[(x)].setpoint+SensoresAtuadores[(x)].histerese //Limite Superior
+#define Relay_Modo(x)             SensoresAtuadores[(x)].modo  //Aquece ou Resfria
+
+
+#define VOLTIMETRO  0
+#define CONDENSADOR 1
+#define SENSOR_NTC  2
+#define VACUOMETRO  3
+#define COMUM       4         
+
+
+SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
+SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
+SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
+SensoresAtuadores[i].status = NORMAL;
+SensoresAtuadores[i].power.relayPin = 2;
+SensoresAtuadores[i].value = 25.0;
+
+
+unsigned relay_buzzer      : 1;
+unsigned relay_condensador : 1;
+unsigned relay_aquecimento : 1;  //Fix Inverter no Hardware condensador e aquecimento        
+unsigned relay_vaccum      : 1;      
+unsigned relay_comum       : 1;
+
+
+
+unsigned flag_processo_auto : 1;        
+unsigned flag_condensador   : 1;
+unsigned flag_vacuo         : 1;
+unsigned flag_aquecimento   : 1;
+unsigned flag_datalog       : 1;
+
+
+*/
+
+
+
+
 
 
 
@@ -796,14 +896,18 @@ void executaTarefa(uint32_t codigo, float parametro) {
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
         funcao = FUNCAO_SHOWMESSAGE; 
     }
-    else if(codigo==CODE_LIOFILIZAR_AUTO)
+    else if(codigo==CODE_LIOFILIZAR_AUTO_ON)
     {
         tempoDecorrido=3000;        
-        flag_processo_modo = !flag_processo_modo;
-        if(flag_processo_modo)
-           strcpy(SensoresAtuadores[displayNumero].mensagem1," ON ");
-        else
-           strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");           
+        flag_processo_auto = true;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1," ON ");
+        funcao = FUNCAO_SHOWMESSAGE;
+    }
+    else if(codigo==CODE_LIOFILIZAR_AUTO_OFF)
+    {
+        tempoDecorrido=3000;        
+        flag_processo_auto = false;
+        strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");           
         funcao = FUNCAO_SHOWMESSAGE;
     }
     else if(codigo==CODE_DEFAULT_FACTORE)
@@ -874,7 +978,7 @@ void FormaNumero(float* number) {
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //SetPoint do Sistema
 void Pressionou_a_Tecla_A() {
-
+     flag_processo_auto=false;  
      relay_condensador = !relay_condensador;
       
      
@@ -919,7 +1023,7 @@ void Pressionou_a_Tecla_A() {
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //Histerese do sistema
 void Pressionou_a_Tecla_B() {
-     
+     flag_processo_auto=false;
      relay_vaccum = !relay_vaccum;
     
      /*  
@@ -978,7 +1082,9 @@ void Pressionou_a_Tecla_C() {
     }
     funcaoMemo = FUNCAO_CODIGO;
 
-    SensoresAtuadores[displayNumero].status = DINAMICO;
+    enterDoKeypad = 0;
+
+    if(displayNumero!=0)SensoresAtuadores[displayNumero].status = DINAMICO;
     
     tempoDecorrido = 3000;
 }
@@ -1083,7 +1189,8 @@ void Pressionou_Tecla_Sharp()
               case CODE_DEFAULT_FACTORE: 
                    strcpy(texto,"DEFA.");
                    break;                   
-              case CODE_LIOFILIZAR_AUTO:
+              case CODE_LIOFILIZAR_AUTO_ON:
+              case CODE_LIOFILIZAR_AUTO_OFF:
                    strcpy(texto,"AUTO");
                    break;   
               case CODE_OFFSET_SETAR: 
@@ -1097,7 +1204,7 @@ void Pressionou_Tecla_Sharp()
               case CODE_HISTERESE_SETAR:
               case CODE_HISTERESE_VIEW:              
                    strcpy(texto,"HIST");
-                   break;              
+                   break;  
               default:
                    codigo = CODE_NULL;
                    strcpy(texto,"CODE");
@@ -1124,9 +1231,10 @@ void Pressionou_Tecla_Sharp()
             case CODE_DATALOG_OFF:    
             case CODE_DEFAULT_FACTORE:
             case CODE_OFFSET_VIEW: 
-            case CODE_LIOFILIZAR_AUTO:
             case CODE_SETPOINT_VIEW:
             case CODE_HISTERESE_VIEW:
+            case CODE_LIOFILIZAR_AUTO_ON:
+            case CODE_LIOFILIZAR_AUTO_OFF:
                  executaTarefa(codigo, 0);
                  enterDoKeypad = 0;
                  break;         
@@ -1232,6 +1340,17 @@ void doLerSensor() {
     }
     else if (escalona == 1) // Sensor de NTC
     {
+
+        ADCvalue = ADC_Indka.read_pin(39, AD_MEDIO);       //Faz uma m�dia das entradas
+        ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
+
+        SensoresAtuadores[escalona].value = ((200.0 * ADCvalue) / 4095.0) - 100.0;
+
+      
+       
+    }
+    else if (escalona == 2) //Sensor PT100 CONDENSAADOR
+    {        
         #define B 3975.0 
         ADCvalue = ADC_Indka.read_pin(34, AD_MEDIO);       //Faz uma m�dia das entradas
         ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
@@ -1248,13 +1367,6 @@ void doLerSensor() {
         temperatura -= 273.15;
       
         SensoresAtuadores[escalona].value = temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
-    }
-    else if (escalona == 2) //Sensor PT100 CONDENSAADOR
-    {        
-        ADCvalue = ADC_Indka.read_pin(39, AD_MEDIO);       //Faz uma m�dia das entradas
-        ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
-
-        SensoresAtuadores[escalona].value = ((200.0 * ADCvalue) / 4095.0) - 100.0;
     }
     else if (escalona == 3) //Sensor de V�cuo
     {

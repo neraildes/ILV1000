@@ -258,8 +258,8 @@ uint8_t Modulo595::codigo(uint8_t value){
           case 'W': return 0xBF; break;
           case '-': return 0XBF; break;
           case '.': return 0X7F; break;
+          case '_': //return 0xF7; break;          
           case ' ': return 0xFF; break;
-          case '_': return 0xF7; break;
           default : return value; break;
 
           }

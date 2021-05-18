@@ -11,7 +11,6 @@ void Eeprom_Indka::EEPROMWriteFloat(uint16_t address, float dado)
        EEPROM.write(address+2, *((uint8_t*)&dado+2));
        EEPROM.write(address+3, *((uint8_t*)&dado+3));       
        EEPROM.commit();
-       buzzer = 200;
        }
 
 float Eeprom_Indka::EEPROMReadFloat(uint16_t address)
@@ -21,6 +20,5 @@ float Eeprom_Indka::EEPROMReadFloat(uint16_t address)
        *(((uint8_t*)&resultado)+1) = EEPROM.read(address+1);
        *(((uint8_t*)&resultado)+2) = EEPROM.read(address+2);
        *(((uint8_t*)&resultado)+3) = EEPROM.read(address+3);  
-       buzzer = 200;
        return resultado;
        }
