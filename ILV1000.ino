@@ -155,6 +155,7 @@ void doProcesso();
 void doAutoRelay();
 void exibeRevisao();
 void debugFlags();
+void loadDefaultFactory();
 
 
 
@@ -172,13 +173,6 @@ void setup()
     pinMode(39, INPUT);
     pinMode(36, INPUT);
 
-
-    //flag_condensador=0;
-    //flag_vacuo=0;
-    //flag_aquecimento=0;
-    //flag_comum=0;
-    //doProcesso();    
-   
     seteSegmentos.clearDisplay();     
     extra74HC595.init();
     comandos.init();  
@@ -254,26 +248,22 @@ void setup()
 
     
      
-    //-------APAGAR DEPOIS DE TESTES (FIX)----------
-    /*
-    SensoresAtuadores[VOLTIMETRO].value = 125.3;
-    SensoresAtuadores[CONDENSADOR].value = 30.4;
-    SensoresAtuadores[VACUOMETRO].value = 637.2;
-    SensoresAtuadores[SENSOR_NTC].value = 17.9;
-    */
-    //----------------------------------------------
+    if((uint32_t)hardDisk.EEPROMReadFloat(20 * i + 0x00)==0xFFFFFFFF) loadDefaultFactory();
     
-    /*
+    
     for (uint8_t i = 0; i < MAXDEVICE; i++)
     {
-        SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
-        SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
-        SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
-        SensoresAtuadores[i].status = NORMAL;
-        SensoresAtuadores[i].power.relayPin = 2;
-        SensoresAtuadores[i].value = 25.0;
+        SensoresAtuadores[i].setpoint  = hardDisk.EEPROMReadFloat(20 * i + 0x00);
+        SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i + 0x04);
+        SensoresAtuadores[i].offset    = hardDisk.EEPROMReadFloat(20 * i + 0x08);
+        SensoresAtuadores[i].tempo_ON  = hardDisk.EEPROMReadFloat(20 * i + 0x0C);
+        SensoresAtuadores[i].tempo_OFF = hardDisk.EEPROMReadFloat(20 * i + 0x10);
+        SensoresAtuadores[i].status    = NORMAL;
+        SensoresAtuadores[i].sentido   = RELAY_SOBE 
+        SensoresAtuadores[i].modo      = RELAY_LIGADO_SOBE
+        SensoresAtuadores[i].value     = 0.0;
     }
-    */
+    
     
     //cria uma tarefa que ser� executada na fun��o coreTaskTwo, com prioridade 2 e execu��o no n�cleo 0
     //coreTaskTwo: vigiar o bot�o para detectar quando pression�-lo
@@ -444,6 +434,7 @@ void doGrava10minutos(){
 uint8_t memoFlags; //fix deve ser inicializado em setup
 void doProcesso(){
        
+     //Salva estado da liofilização  
      if(memoFlags!=(persistente.statusgen.value & 0b11100001))
        {
        Serial.print("Gravando Status (Por mudança de estado.)...");
@@ -459,9 +450,9 @@ void doProcesso(){
          flag_condensador=true; 
          for(uint8_t i=1; i<MAXDEVICE; i++)
             {
-            SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
-            SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
-            SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
+            SensoresAtuadores[i].setpoint =  hardDisk.EEPROMReadFloat(20 * i + 0);
+            SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i + 4);
+            SensoresAtuadores[i].offset =    hardDisk.EEPROMReadFloat(20 * i + 8);
             }
                             
            if(Relay_Valor_Composto(CONDENSADOR)<Relay_SetPoint(CONDENSADOR))
@@ -481,16 +472,14 @@ void doProcesso(){
                 }                  
               }
               
-          
-         if(flag_condensador==true) Relay_Power(CONDENSADOR, HIGH); else Relay_Power(CONDENSADOR, LOW) ;
-         if(flag_vacuo==true) Relay_Power(VACUOMETRO, HIGH); else Relay_Power(VACUOMETRO, LOW) ;
-         if(flag_aquecimento) Relay_Power(SENSOR_NTC, HIGH); else Relay_Power(SENSOR_NTC, LOW) ; 
-         if(flag_aquecimento) Relay_Power(COMUM, HIGH); else Relay_Power(COMUM, LOW) ;             
          
+         if(flag_condensador) autoRelay(CONDENSADOR); else  relayManager(CONDENSADOR, LOW);
+         if(flag_vacuo)       autoRelay(VACUOMETRO);  else  relayManager(VACUOMETRO,  LOW);
+         if(flag_aquecimento) autoRelay(SENSOR_NTC);  else  relayManager(SENSOR_NTC,  LOW); 
+         if(flag_aquecimento) autoRelay(SENSOR_NTC);  else  relayManager(SENSOR_NTC,  LOW);             
+
          }
        
-
-
 }
 
 
@@ -522,9 +511,9 @@ void doProcesso(){
 #define COMUM       4         
 
 
-SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
-SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
-SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
+SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(20 * i + 0);
+SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i + 4);
+SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(20 * i + 8);
 SensoresAtuadores[i].status = NORMAL;
 SensoresAtuadores[i].power.relayPin = 2;
 SensoresAtuadores[i].value = 25.0;
@@ -557,7 +546,7 @@ unsigned flag_datalog       : 1;
 
 void doAutoRelay() {
     static uint8_t escalona=1;
-
+    /*
     if (Relay_Status(escalona) == RELAY_ESTADO_ATIVO)
     {
         //================ CONTROLE DE TEMPO DO RELE 0 =================
@@ -590,6 +579,7 @@ void doAutoRelay() {
                 }
         }
     }
+    */
     escalona++;
     if (escalona >= MAXDEVICE) escalona = 1;
 }
@@ -787,7 +777,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     {
         Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
         SensoresAtuadores[displayNumero].offset = parametro;
-        hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro);        
+        hardDisk.EEPROMWriteFloat(20 * displayNumero + 8, parametro);        
     }
     else if(codigo==CODE_OFFSET_VIEW) //2
     {
@@ -795,7 +785,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SaidaAutomatica(SETA);
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"OFF.S");
-        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 8);
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 8);
         Serial.printf("Voce esta visualizando o Offset");        
     }
     else if(codigo==CODE_SETPOINT_SETAR) //3
@@ -803,7 +793,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
         SensoresAtuadores[displayNumero].setpoint = parametro;
-        hardDisk.EEPROMWriteFloat(12 * displayNumero + 0, parametro);  //12 * i + 0
+        hardDisk.EEPROMWriteFloat(20 * displayNumero + 0, parametro);  //20 * i + 0
     }
     else if(codigo==CODE_SETPOINT_VIEW) //4
     {
@@ -811,7 +801,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SaidaAutomatica(SETA);
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
-        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 0);
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0);
         Serial.printf("Voce esta visualizando o SetPoint"); 
     }
     else if(codigo==CODE_HISTERESE_SETAR) //5
@@ -819,7 +809,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         Serial.printf("Voce setou a histerese em %3.3f *C\n", parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
         SensoresAtuadores[displayNumero].histerese = parametro;
-        hardDisk.EEPROMWriteFloat(12 * displayNumero + 4, parametro);  //12 * i + 4
+        hardDisk.EEPROMWriteFloat(20 * displayNumero + 4, parametro);  //20 * i + 4
     }
     else if(codigo==CODE_HISTERESE_VIEW) //6
     {
@@ -827,7 +817,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SaidaAutomatica(SETA);
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
-        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(12 * displayNumero + 4);
+        SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 4);
         Serial.printf("Voce esta visualizando o Histerese.");        
     }
     else if(codigo==CODE_CONDENSADOR_ON) //10
@@ -912,32 +902,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_DEFAULT_FACTORE)
     {
-        hardDisk.EEPROMWriteFloat(0, 127.0);  //SetPoint Volts
-        hardDisk.EEPROMWriteFloat(4, 15.0);   //Histerese Volts
-        hardDisk.EEPROMWriteFloat(8, 0.0);    //OFF Set Volts
-
-        hardDisk.EEPROMWriteFloat(12, -35.0); //SetPoint Condensador
-        hardDisk.EEPROMWriteFloat(16, 20.0);  //Histerese Condensador
-        hardDisk.EEPROMWriteFloat(20, 0.0);   //Off set condensador
-
-        hardDisk.EEPROMWriteFloat(24, -35.0); //SetPoint NTC
-        hardDisk.EEPROMWriteFloat(28, 20.0);  //Histerese NTC
-        hardDisk.EEPROMWriteFloat(32, 0.0);   //Off set NTC
-
-
-        hardDisk.EEPROMWriteFloat(36, 600.0);  //SetPoint Vacuometro
-        hardDisk.EEPROMWriteFloat(40, 200.0);  //Histerese Vacuometro
-        hardDisk.EEPROMWriteFloat(44, 0.0);    //Off Set Vacuometro
-
-        for (uint8_t i = 0; i < MAXDEVICE; i++)
-        {
-            SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(12 * i + 0);
-            SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(12 * i + 4);
-            SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(12 * i + 8);
-            SensoresAtuadores[i].status = NORMAL;
-        }
-        funcao = FUNCAO_NONE;
-        Serial.println("Valores padrao de fabrica carregados!");        
+        loadDefaultFactory();
     }
     else if(codigo==CODE_NULL)
     {
@@ -945,8 +910,6 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SaidaAutomatica(SETA);
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"NULL");
         Serial.printf("Voce entrou com parâmetro nulo!", parametro);
-        SensoresAtuadores[displayNumero].offset = parametro;
-        hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro);  
         buzzer=1000;
         Serial.println("Codigo invalido!");
     }
@@ -1145,14 +1108,14 @@ void Pressionou_Tecla_Sharp()
     {
         SensoresAtuadores[displayNumero].setpoint = SensoresAtuadores[displayNumero].temp;
         SensoresAtuadores[displayNumero].status = NORMAL;
-        hardDisk.EEPROMWriteFloat((displayNumero * 12), SensoresAtuadores[displayNumero].setpoint);
+        hardDisk.EEPROMWriteFloat((20 * displayNumero + 0), SensoresAtuadores[displayNumero].setpoint);
         funcao = FUNCAO_NONE;
     }
     else if (funcao == FUNCAO_HISTERESE)
     {
         SensoresAtuadores[displayNumero].histerese = SensoresAtuadores[displayNumero].temp;
         SensoresAtuadores[displayNumero].status = NORMAL;
-        hardDisk.EEPROMWriteFloat((12 * displayNumero + 4), SensoresAtuadores[displayNumero].histerese);
+        hardDisk.EEPROMWriteFloat((20 * displayNumero + 4), SensoresAtuadores[displayNumero].histerese);
         funcao = FUNCAO_NONE;
     }
     else if (funcao == FUNCAO_CODIGO)
@@ -1426,8 +1389,12 @@ void doDisplay(void) {
 //=====================================================================
 //++++++++++++++++++++++
 //Relogio de tempo real
+uint16_t tempoCNT;
 void doRTC() {
     milisegundo++;
+
+    if(tempoCNT>0) tempoCNT--;
+
     if (tempoDecorrido > 0) tempoDecorrido--;
     if (buzzer > 0)
     {
@@ -1484,3 +1451,54 @@ void debugFlags(){
      //Serial.println(flag_vacuo);
 }
     
+void releLigado(){
+     
+}
+
+
+
+
+//--------------------------------------------------------------------------------------
+void loadDefaultFactory(){
+
+    //-----------------HORARIO-------------------------------
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_SET,     0.0);  //SetPoint
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_HIS,     1.0);  //Histerese Volts
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_OFF,     0.0);  //OFF Set Volts
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_ATIVO,  10.0);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_INATIVO, 0.0);  //Tempo OFF 
+
+    //-----------------CONDENSADOR----------------------------
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_SET,   -15.0);  //SetPoint Condensador
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_HIS,     5.0);  //Histerese Condensador
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_OFF,     0.0);  //Off set condensador
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_ATIVO,  10.0);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_INATIVO, 0.0);  //Tempo OFF
+
+    //--------------------NTC---------------------------------
+    hardDisk.EEPROMWriteFloat(ADD_NTC_SET,     35.0);  //SetPoint NTC
+    hardDisk.EEPROMWriteFloat(ADD_NTC_HIS,      1.0);  //Histerese NTC
+    hardDisk.EEPROMWriteFloat(ADD_NTC_OFF,      0.0);  //Off set NTC
+    hardDisk.EEPROMWriteFloat(ADD_NTC_ATIVO,   10.0);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_NTC_INATIVO, 20.0);  //Tempo OFF
+
+    //---------------------VACUOMETRO-------------------------
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_SET, 1300.0);     //SetPoint Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_HIS, 200.0);      //Histerese Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_OFF, 0.0);        //Off Set Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_ATIVO, 10.0);     //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_INATIVO, 20.0);   //Tempo OFF
+    /*
+    for (uint8_t i = 0; i < MAXDEVICE; i++)
+    {
+        SensoresAtuadores[i].setpoint  = hardDisk.EEPROMReadFloat(20 * i +  0);
+        SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i +  4);
+        SensoresAtuadores[i].offset    = hardDisk.EEPROMReadFloat(20 * i +  8);
+        SensoresAtuadores[i].tempo_ON  = hardDisk.EEPROMReadFloat(20 * i + 12);
+        SensoresAtuadores[i].tempo_OFF = hardDisk.EEPROMReadFloat(20 * i + 16);
+        SensoresAtuadores[i].status = NORMAL;
+    }
+    */
+    funcao = FUNCAO_NONE;
+    Serial.println("Valores padrao de fabrica carregados!");            
+}

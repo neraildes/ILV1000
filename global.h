@@ -22,24 +22,42 @@
 #define NORMAL     0
 #define PISCA      1
 #define DINAMICO   2
-//#define DINAMICO 2 //Vai mudar para pisca
+
 
 //ENDERECOS DE MEMORIA PARA SALVAR DADOS NA EEPROM
-#define ADD_VOLTIMETRO_SET    0X00  //4 bytes        
-#define ADD_VOLTIMETRO_HIS    0X04  //4 bytes        
-#define ADD_VOLTIMETRO_OFF    0X08  //4 bytes 
-#define ADD_CONDENSADOR_SET   0x0C  //4 bytes
-#define ADD_CONDENSADOR_HIS   0x10  //4 bytes
-#define ADD_CONDENSADOR_OFF   0x14  //4 bytes
-#define ADD_VACUOMETRO_SET    0X18  //4 bytes
-#define ADD_VACUOMETRO_HIS    0X1C  //4 bytes
-#define ADD_VACUOMETRO_OFF    0X20  //4 bytes
-#define ADD_STATUSGEN         0x24  //1 byte
-#define ADD_HORA_PROCESSO     0x25  //1 byte
-#define ADD_MINUTO_PROCESSO   0x26  //1 byte
-//(12 * i + 0) SETPOINT
-//(12 * i + 4) HISTERESE
-//(12 * i + 8) OFFSET
+#define ADD_HORARIO_SET         0X00  //4 bytes        
+#define ADD_HORARIO_HIS         0X04  //4 bytes        
+#define ADD_HORARIO_OFF         0X08  //4 bytes 
+#define ADD_HORARIO_ATIVO       0X0C
+#define ADD_HORARIO_INATIVO     0x10
+
+#define ADD_CONDENSADOR_SET     0x14  //4 bytes
+#define ADD_CONDENSADOR_HIS     0x18  //4 bytes
+#define ADD_CONDENSADOR_OFF     0x1C  //4 bytes
+#define ADD_CONDENSADOR_ATIVO   0x20
+#define ADD_CONDENSADOR_INATIVO 0x24
+
+#define ADD_NTC_SET             0X28  //4 bytes
+#define ADD_NTC_HIS             0X2C  //4 bytes
+#define ADD_NTC_OFF             0X30  //4 bytes
+#define ADD_NTC_ATIVO           0x34 
+#define ADD_NTC_INATIVO         0x38
+
+#define ADD_VACUOMETRO_SET      0X3C  //4 bytes
+#define ADD_VACUOMETRO_HIS      0X40  //4 bytes
+#define ADD_VACUOMETRO_OFF      0X44  //4 bytes
+#define ADD_VACUOMETRO_ATIVO    0x48
+#define ADD_VACUOMETRO_INATIVO  0x4C
+
+#define ADD_STATUSGEN           0x50  //1 byte
+#define ADD_HORA_PROCESSO       0x54  //1 byte
+#define ADD_MINUTO_PROCESSO     0x58  //1 byte
+
+//(20 * i + 0x00) SETPOINT
+//(20 * i + 0x04) HISTERESE
+//(20 * i + 0x08) OFFSET
+//(20 * i + 0x0C) ATIVO
+//(20 * i + 0x10) INATIVO
 
 
 //FUNCOES DO TECLADO

@@ -456,14 +456,14 @@ void Shell::prompt(void)
                 parametro = extraiProximoParametro(&buffer, ' ');
                 if (parametro == "")
                 {
-                    blkPrint(hardDisk.EEPROMReadFloat(12 * displayNumero + 4), 1);
+                    blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 4), 1);
                     blkPrintln(SUFIXO[displayNumero]);
                 }
                 else
                 {
                     SensoresAtuadores[displayNumero].histerese = parametro.toFloat();
                     blkPrint("Ajustando Histerese para "); blkPrint(SensoresAtuadores[displayNumero].histerese,2); blkPrintln(SUFIXO[displayNumero]);
-                    hardDisk.EEPROMWriteFloat(12 * displayNumero + 4, parametro.toFloat());
+                    hardDisk.EEPROMWriteFloat(20 * displayNumero + 4, parametro.toFloat());
                 }
             }
             else if (parametro == "/S")
@@ -471,14 +471,14 @@ void Shell::prompt(void)
                 parametro = extraiProximoParametro(&buffer, ' ');
                 if (parametro == "")
                 {
-                    blkPrint(hardDisk.EEPROMReadFloat(12 * displayNumero + 0),1);
+                    blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0),1);
                     blkPrintln(SUFIXO[displayNumero]);
                 }
                 else
                 {
                     SensoresAtuadores[displayNumero].setpoint = parametro.toFloat();
                     blkPrint("Ajustando SetPoint para "); blkPrint(SensoresAtuadores[displayNumero].setpoint,2); blkPrintln(SUFIXO[displayNumero]);
-                    hardDisk.EEPROMWriteFloat(12 * displayNumero + 0, parametro.toFloat());
+                    hardDisk.EEPROMWriteFloat(20 * displayNumero + 0, parametro.toFloat());
                 }
 
 
@@ -489,14 +489,14 @@ void Shell::prompt(void)
                 parametro = extraiProximoParametro(&buffer, ' ');
                 if (parametro == "")
                 {
-                    blkPrint(hardDisk.EEPROMReadFloat(12 * displayNumero + 8), 1);
+                    blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 8), 1);
                     blkPrintln(SUFIXO[displayNumero]);
                 }
                 else
                 {
                     SensoresAtuadores[displayNumero].offset = parametro.toFloat();
                     blkPrint("Ajustando OffSet para "); blkPrint(SensoresAtuadores[displayNumero].offset,2); blkPrintln(SUFIXO[displayNumero]);
-                    hardDisk.EEPROMWriteFloat(12 * displayNumero + 8, parametro.toFloat());
+                    hardDisk.EEPROMWriteFloat(20 * displayNumero + 8, parametro.toFloat());
                 }
             }
         }
