@@ -108,15 +108,19 @@ const String SUFIXO[4] = { "V.",
 #define CODE_SETPOINT_VIEW         4
 #define CODE_HISTERESE_SETAR       5
 #define CODE_HISTERESE_VIEW        6
+#define CODE_TEMPO_ON_SETAR        7
+#define CODE_TEMPO_ON_VIEW         8
+#define CODE_TEMPO_OFF_SETAR       9
+#define CODE_TEMPO_OFF_VIEW       10
 
-#define CODE_CONDENSADOR_ON       10
-#define CODE_CONDENSADOR_OFF      11
-#define CODE_VACCUM_ON            12
-#define CODE_VACCUM_OFF           13
-#define CODE_AQUECIMENTO_ON       14
-#define CODE_AQUECIMENTO_OFF      15
-#define CODE_DATALOG_ON           16
-#define CODE_DATALOG_OFF          17
+#define CODE_CONDENSADOR_ON       20
+#define CODE_CONDENSADOR_OFF      21
+#define CODE_VACCUM_ON            22
+#define CODE_VACCUM_OFF           23
+#define CODE_AQUECIMENTO_ON       24
+#define CODE_AQUECIMENTO_OFF      25
+#define CODE_DATALOG_ON           26
+#define CODE_DATALOG_OFF          27
 
 #define CODE_LIOFILIZAR_AUTO_ON  100
 #define CODE_LIOFILIZAR_AUTO_OFF 101

@@ -1,5 +1,13 @@
+
+
 #include "Global.h"
 #include "Controladores.h"
+#include "Eeprom_Indka.h"
+
+
+extern Controladores SensoresAtuadores[MAXDEVICE];
+extern uint16_t tempoCNT;
+extern Eeprom_Indka hardDisk ;
 
 float  Controladores::valorDeLeitura(uint8_t tipo) {
        if (tipo == SIMPLES)
@@ -10,7 +18,7 @@ float  Controladores::valorDeLeitura(uint8_t tipo) {
 
 
 //--------------------------------------------------------------------
-void  autoRelay(uint8_t device)
+void  Controladores::autoRelay(uint8_t device)
 {
 
       //================ CONTROLE DE TEMPO DO RELE 0 =================
@@ -19,13 +27,13 @@ void  autoRelay(uint8_t device)
           if (modo == RELAY_LIGADO_SOBE)
           {
               sentido = RELAY_SOBE;
-              Relay_Manager(device, HIGH);  //ligar
+              relayManager(device, HIGH);  //ligar
           }
           else
               if (modo == RELAY_LIGADO_DESCE)
               {
                   sentido = RELAY_DESCE;
-                  Relay_Manager(device, LOW);  //Desligar
+                  relayManager(device, LOW);  //Desligar
               }
       }
       else if (Relay_Valor_Composto(device) > Relay_SetPoint(device))
@@ -33,25 +41,25 @@ void  autoRelay(uint8_t device)
           if (modo == RELAY_LIGADO_SOBE)
           {
               sentido = RELAY_DESCE;
-              Relay_Manager(device, LOW); //DESLIGA
+              relayManager(device, LOW); //DESLIGA
           }
           else
               if (modo == RELAY_LIGADO_DESCE)
               {
                   sentido = RELAY_SOBE;
-                  Relay_Manager(device, HIGH); //LIGA
+                  relayManager(device, HIGH); //LIGA
               }
       }  
 }
 
 
 //------------------------------------------------------------------------------
-void relayManager(uint8_t device, uint8_t situacao)
+void Controladores::relayManager(uint8_t device, uint8_t situacao)
 {
     uint8_t auxiliar; 
     auxiliar=pow(2, device);
 
-    if(situação==HIGH) //Ligado
+    if(situacao==HIGH) //Ligado
       {
         if(tempoCNT==0)
           {
@@ -67,7 +75,7 @@ void relayManager(uint8_t device, uint8_t situacao)
             }  
           }
       }
-    else if(situação==LOW)
+    else if(situacao==LOW)
       {
       	extra74HC595.chip.value |= auxiliar; //Desligar Relê
       }  
@@ -90,7 +98,7 @@ else if(funcao==LOW)
 
 //----------------------------------------------------------------------------
 //Faz leitura se o relê especificado está ligado ou desligado
-bool relayStado(uint8_t device){
+bool Controladores::relayStado(uint8_t device){
      bool retorno;
      uint8_t auxiliar;
      auxiliar=pow(2,device);
@@ -100,3 +108,16 @@ bool relayStado(uint8_t device){
 
 	 return retorno;
 }
+
+//------------------------------------------------------------------------------
+/*
+void Controladores::Relay_Power(uint8_t device, bool state){
+     uint8_t auxiliar;
+     auxiliar=pow(2,device);
+
+     if(state)
+        extra74HC595.chip.value &= ~auxiliar;
+     else
+        extra74HC595.chip.value |= auxiliar;
+}
+*/

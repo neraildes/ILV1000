@@ -317,12 +317,12 @@ void Shell::prompt(void)
                 if (parametro == "ON")
                 {                    
                     persistente.statusgen.value |= elevado;
-                    Relay_Power(releNum, HIGH);                   
+                    //SensoresAtuadores[releNum].Relay_Power(releNum, HIGH);                   
                 }
                 else if (parametro == "OFF")
                 {
                     persistente.statusgen.value &= ~elevado;
-                    Relay_Power(releNum, LOW);
+                    //SensoresAtuadores[releNum].Relay_Power(releNum, LOW);
                 }
                
             }            
@@ -343,6 +343,8 @@ void Shell::prompt(void)
                 blkPrintln("/S    - Exibe ou altera o SetPoint.");
                 blkPrintln("/H    - Exibe ou altera a Histerese.");
                 blkPrintln("/O    - Exibe ou altera o OffSet.");
+                blkPrintln("/T1   - Exibe ou altera o Tempo ON.");
+                blkPrintln("/T0   - Exibe ou altera o Tempo OFF.");
                 blkPrintln("/INFO - Exibe todos os dados do sensor.");
             }
             else if (parametro == "/ALL")
@@ -484,8 +486,7 @@ void Shell::prompt(void)
 
             }
             else if (parametro == "/O")
-            {
-                                
+            {                                
                 parametro = extraiProximoParametro(&buffer, ' ');
                 if (parametro == "")
                 {
@@ -499,6 +500,47 @@ void Shell::prompt(void)
                     hardDisk.EEPROMWriteFloat(20 * displayNumero + 8, parametro.toFloat());
                 }
             }
+
+
+            else if (parametro == "/T1")
+            {                                
+                parametro = extraiProximoParametro(&buffer, ' ');
+                if (parametro == "")
+                {
+                    blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C), 1);
+                    blkPrintln(SUFIXO[displayNumero]);
+                }
+                else
+                {
+                    SensoresAtuadores[displayNumero].tempo_ON = parametro.toFloat();
+                    blkPrint("Ajustando Tempo ON para "); blkPrint(SensoresAtuadores[displayNumero].tempo_ON,2); blkPrintln(SUFIXO[displayNumero]);
+                    hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x0C, parametro.toFloat());
+                }
+            }
+
+
+            else if (parametro == "/T0")
+            {                                
+                parametro = extraiProximoParametro(&buffer, ' ');
+                if (parametro == "")
+                {
+                    blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10), 1);
+                    blkPrintln(SUFIXO[displayNumero]);
+                }
+                else
+                {
+                    SensoresAtuadores[displayNumero].tempo_OFF = parametro.toFloat();
+                    blkPrint("Ajustando Tempo OFF para "); blkPrint(SensoresAtuadores[displayNumero].tempo_OFF,2); blkPrintln(SUFIXO[displayNumero]);
+                    hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro.toFloat());
+                }
+            }
+
+
+
+
+
+
+            
         }
         else if ((parametro == DEVICE[displayNumero]) && (buffer == ""))
         {

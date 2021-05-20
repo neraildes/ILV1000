@@ -21,8 +21,8 @@ extern Sobressalente74HC595 extra74HC595;
 #define RELAY_DESCENDO            20 //
 #define RELAY_LIGADO_SOBE         30 //_____DEFINE A FUNCÃO DO ATUADOR.
 #define RELAY_LIGADO_DESCE        40 //
-#define Relay_Status(x)           SensoresAtuadores[(x)].power.relayStatus  //NORMAL, PISCA, DINAMICO
-#define Relay_Power(x, y)         SensoresAtuadores[(x)].power.powerRelay(x, y) //HIGH ou LOW (Liga/Desliga)
+//#define Relay_Status(x)           SensoresAtuadores[(x)].power.relayStatus  //NORMAL, PISCA, DINAMICO
+//#define Relay_Power(x, y)         SensoresAtuadores[(x)].powerRelay(x, y) //HIGH ou LOW (Liga/Desliga)
 #define Relay_Valor_Simples(x)    SensoresAtuadores[(x)].valorDeLeitura(SIMPLES) //Valor real puro
 #define Relay_Valor_Composto(x)   SensoresAtuadores[(x)].valorDeLeitura(COMPOSTO) //Valor real mais o offset
 #define Relay_SetPoint(x)         SensoresAtuadores[(x)].setpoint  //setpoint
@@ -31,75 +31,6 @@ extern Sobressalente74HC595 extra74HC595;
 #define Relay_Setagem_Baixa(x)    SensoresAtuadores[(x)].setpoint-SensoresAtuadores[(x)].histerese //Limite inferior
 #define Relay_Setagem_Alta(x)     SensoresAtuadores[(x)].setpoint+SensoresAtuadores[(x)].histerese //Limite Superior
 #define Relay_Modo(x)             SensoresAtuadores[(x)].modo  //LIGADO_SOBE e LIGADO_DESCE
-
-typedef struct {
-               bool    relayStatus;
-               uint8_t relayPin;
-               void powerRelay(int8_t device, uint8_t funcao)
-                    {
-                        
-                        //================ CONTROLE DE TEMPO DO RELE 0 =================
-                        if (Relay_Valor_Composto(device) <= Relay_Setagem_Baixa(device))
-                        {
-                            if (Relay_Modo(device) == RELAY_LIGADO_SOBE)
-                            {
-                                Relay_Status(device) = RELAY_SOBE;
-                                Relay_Power(device, HIGH);
-                            }
-                            else
-                                if (Relay_Modo(device) == RELAY_LIGADO_DESCE)
-                                {
-                                    Relay_Status(device) = RELAY_DESCE;
-                                    Relay_Power(device, LOW);
-                                }
-                        }
-                        else if (Relay_Valor_Composto(device) > Relay_SetPoint(device))
-                        {
-                            if (Relay_Modo(device) == RELAY_LIGADO_SOBE)
-                            {
-                                Relay_Status(device) = RELAY_LIGADO_DESCE;
-                                Relay_Power(device, LOW);
-                            }
-                            else
-                                if (Relay_Modo(device) == RELAY_REFRIGERAR)
-                                {
-                                    Relay_Status(device) = RELAY_SOBE;
-                                    Relay_Power(device, HIGH);
-                                }
-                        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    
-                    uint8_t auxiliar; 
-                    auxiliar=pow(2,pin);                    
-                    
-                    if(funcao==HIGH)
-                      {     
-                      extra74HC595.chip.value &= ~auxiliar;
-                      }                      
-                    else if(funcao==LOW)
-                           {                          
-                           extra74HC595.chip.value |= auxiliar;
-                           }  
-                    
-
-
-                                                                      
-                    }
-               uint8_t relaySentido;
-               uint8_t modo;
-               } tpower;
 
 class  Controladores {
           public:
@@ -114,12 +45,12 @@ class  Controladores {
                int8_t  sentido;       //RELAY_SOBE ou RELAY_DESCE;
                char  mensagem[10];    //Mensagem principal a ser exibida no display
                char  mensagem1[10];   //Mensagem secundária a ser exibida no display
-               uint8_t modo;          //RELAY_LIGADO_SOBE ou RELAY_LIGADO_DESCE
-               //tpower  power;         //Método que aciona o rele do dispositivo
+               uint8_t modo;          //RELAY_LIGADO_SOBE ou RELAY_LIGADO_DESCE               
                float valorDeLeitura(uint8_t tipo); //Metodo que retorna o valor lido SIMPLES ou COMPOSTO.
                void autoRelay(uint8_t device); //Faz relê ciclar em milisegundos e mantém temperatura
                void relayManager(uint8_t device, uint8_t situacao);
-               uint8_t relayStado(uint8_t device);
+               bool relayStado(uint8_t device);
+               void Relay_Power(uint8_t device, bool state);
                };
 
 
