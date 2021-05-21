@@ -28,6 +28,8 @@ extern Sobressalente74HC595 extra74HC595;
 #define Relay_SetPoint(x)         SensoresAtuadores[(x)].setpoint  //setpoint
 #define Relay_Histerese(x)        SensoresAtuadores[(x)].histerese //histerese
 #define Relay_OffSet(x)           SensoresAtuadores[(x)].offset //offset
+#define Relay_Tempo_ON(x)         SensoresAtuadores[(x)].tempo_ON //Tempo do relê ligado
+#define Relay_Tempo_OFF(x)        SensoresAtuadores[(x)].tempo_OFF //Tempo do relê desligado
 #define Relay_Setagem_Baixa(x)    SensoresAtuadores[(x)].setpoint-SensoresAtuadores[(x)].histerese //Limite inferior
 #define Relay_Setagem_Alta(x)     SensoresAtuadores[(x)].setpoint+SensoresAtuadores[(x)].histerese //Limite Superior
 #define Relay_Modo(x)             SensoresAtuadores[(x)].modo  //LIGADO_SOBE e LIGADO_DESCE

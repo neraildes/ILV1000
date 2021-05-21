@@ -450,6 +450,8 @@ void Shell::prompt(void)
                 blkPrint("OffSet    = "); blkPrint(Relay_OffSet(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
                 blkPrint("Superior  = "); blkPrint(Relay_Setagem_Alta(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
                 blkPrint("Inferior  = "); blkPrint(Relay_Setagem_Baixa(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
+                blkPrint("Tempo ON  = "); blkPrint(Relay_Tempo_ON(displayNumero), 2); blkPrintln(" ms.");
+                blkPrint("Tempo OFF = "); blkPrint(Relay_Tempo_OFF(displayNumero), 2); blkPrintln(" ms.");
                 blkPrintln("-------------------------------------");
 
             }

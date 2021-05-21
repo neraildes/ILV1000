@@ -198,7 +198,7 @@ void setup()
 
 
     thDisplay.onRun(doDisplay);
-    thDisplay.setInterval(1);
+    thDisplay.setInterval(0);
 
     controller_0.add(&thDisplay);  //Displays de sete segmentos
 
@@ -496,8 +496,16 @@ void doProcesso(){
          //---------------------------------------------------------------------------------------------------------------------------------------------------   
          if(flag_condensador) SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH);else SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);            
          if(flag_vacuo)       SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);  else SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);            
-         if(flag_aquecimento) SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);  else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,  LOW); 
-         if(flag_aquecimento) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);            else  SensoresAtuadores[COMUM].relayManager(COMUM,  LOW);                      
+         if(flag_aquecimento) 
+            {
+            SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); 
+            SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);
+            }
+         else   
+            {
+            SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,  LOW); 
+            SensoresAtuadores[COMUM].relayManager(COMUM,  LOW);                      
+            }
         
 }
 
@@ -950,89 +958,18 @@ void FormaNumero(float* number) {
 //SetPoint do Sistema
 void Pressionou_a_Tecla_A() {
      flag_processo_auto=false; 
+     flag_vacuo=false;
+     flag_aquecimento=false;
      flag_condensador = !flag_condensador;
-      
-     
-     /*
-     static bool flag_estado=false;
-
-     if(flag_estado)
-       {
-       flag_estado=false; 
-       flag_brx=true;
-       bufferBlynk="relay condensador on"; 
-       }
-     else
-       {
-       flag_estado=true; 
-       flag_brx=true;
-       bufferBlynk="relay condensador off"; 
-       }
-     */
-
-       
-    /*
-    funcao = FUNCAO_SETPOINT;
-    for (int8_t i = 0; i < MAXDEVICE; i++)    
-    {
-        SensoresAtuadores[i].status = NORMAL;
-        strcpy(SensoresAtuadores[i].mensagem,"SET.P");
-        SensoresAtuadores[i].temp = SensoresAtuadores[i].setpoint;
-    }
-    if (funcaoMemo == FUNCAO_SETPOINT)
-    {
-        if (++displayNumero >= MAXDEVICE) displayNumero = 0;
-        flag_zerar = true;
-    }
-    funcaoMemo = FUNCAO_SETPOINT;
-
-    SensoresAtuadores[displayNumero].status = DINAMICO;
-    tempoDecorrido = 3000;
-    */
 }
 
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //Histerese do sistema
 void Pressionou_a_Tecla_B() {
      flag_processo_auto=false;
+     flag_aquecimento=false;
+     flag_condensador=false;
      relay_vaccum = !relay_vaccum;
-    
-     /*  
-     static bool flag_estado=false;
-
-     if(flag_estado)
-       {
-       flag_estado=false; 
-       flag_brx=true;
-       bufferBlynk="relay vacuo on"; 
-       }
-     else
-       {
-       flag_estado=true; 
-       flag_brx=true;
-       bufferBlynk="relay vacuo off"; 
-       }    
-       */
-       
-    /*
-    funcao = FUNCAO_HISTERESE;
-    decimal = 0.01;
-    for (int8_t i = 0; i < MAXDEVICE; i++)
-    {
-        SensoresAtuadores[i].status = NORMAL;
-        strcpy(SensoresAtuadores[i].mensagem,"HIST");
-        SensoresAtuadores[i].temp = SensoresAtuadores[i].histerese;
-    }
-    if (funcaoMemo == FUNCAO_HISTERESE)
-    {
-        if (++displayNumero >= MAXDEVICE) displayNumero = 0;
-        flag_zerar = true;
-    }
-    funcaoMemo = FUNCAO_HISTERESE;
-
-    SensoresAtuadores[displayNumero].status = DINAMICO;
-    tempoDecorrido = 3000;
-    */
 }
 
 //====================================================================================

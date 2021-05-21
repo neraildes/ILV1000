@@ -12,7 +12,7 @@
 
 
 char auth[] = "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh";
-char ssid[] = "Nera Repeater";
+char ssid[] = "Nera";
 char pass[] = "iub950962";
 
 extern Controladores SensoresAtuadores[MAXDEVICE];
