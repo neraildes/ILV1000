@@ -19,8 +19,8 @@ extern Sobressalente74HC595 extra74HC595;
 //------------------------controle de potencia utilizando os reles---------------------------------------
 #define RELAY_SUBINDO             10 //_____STATUS DA GRANDEZA
 #define RELAY_DESCENDO            20 //
-#define RELAY_LIGADO_SOBE         30 //_____DEFINE A FUNCÃO DO ATUADOR.
-#define RELAY_LIGADO_DESCE        40 //
+#define RELAY_LIGADO              30 //_____DEFINE A FUNCÃO DO ATUADOR.
+#define RELAY_DESLIGADO           40 //
 //#define Relay_Status(x)           SensoresAtuadores[(x)].power.relayStatus  //NORMAL, PISCA, DINAMICO
 //#define Relay_Power(x, y)         SensoresAtuadores[(x)].powerRelay(x, y) //HIGH ou LOW (Liga/Desliga)
 #define Relay_Valor_Simples(x)    SensoresAtuadores[(x)].valorDeLeitura(SIMPLES) //Valor real puro
@@ -31,6 +31,7 @@ extern Sobressalente74HC595 extra74HC595;
 #define Relay_Setagem_Baixa(x)    SensoresAtuadores[(x)].setpoint-SensoresAtuadores[(x)].histerese //Limite inferior
 #define Relay_Setagem_Alta(x)     SensoresAtuadores[(x)].setpoint+SensoresAtuadores[(x)].histerese //Limite Superior
 #define Relay_Modo(x)             SensoresAtuadores[(x)].modo  //LIGADO_SOBE e LIGADO_DESCE
+#define Relay_Estado(x)           SensoresAtuadores[(x)].estado //RELAY_LIGADO ou RELAY_DESLIGADO
 
 class  Controladores {
           public:
@@ -42,18 +43,16 @@ class  Controladores {
                float   tempo_OFF;     //Tempo de relê desligado
                float   temp=0;        //Valor temporário a ser exibido no display
                int8_t  status= NORMAL;//Status que controla a exibição no display (NORMAL/PISCA/DINAMICO)
-               int8_t  sentido;       //RELAY_SOBE ou RELAY_DESCE;
+               int8_t  estado;       //RELAY_SOBE ou RELAY_DESCE;
                char  mensagem[10];    //Mensagem principal a ser exibida no display
                char  mensagem1[10];   //Mensagem secundária a ser exibida no display
-               uint8_t modo;          //RELAY_LIGADO_SOBE ou RELAY_LIGADO_DESCE               
+               //uint8_t modo;          //RELAY_LIGADO_SOBE ou RELAY_LIGADO_DESCE               
                float valorDeLeitura(uint8_t tipo); //Metodo que retorna o valor lido SIMPLES ou COMPOSTO.
-               void autoRelay(uint8_t device); //Faz relê ciclar em milisegundos e mantém temperatura
+               //void autoRelay(uint8_t device); //Faz relê ciclar em milisegundos e mantém temperatura
                void relayManager(uint8_t device, uint8_t situacao);
                bool relayStado(uint8_t device);
                void Relay_Power(uint8_t device, bool state);
                };
-
-
 
 
 

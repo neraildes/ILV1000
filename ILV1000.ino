@@ -113,7 +113,7 @@ uint16_t buzzer = 0;
 
 uint8_t minutoProcesso=0;
 uint8_t horaProcesso=0;
-uint16_t tempoCNT;
+uint16_t tempoCNT[MAXDEVICE];
 
 char tecla_pressionada = 0;
 int8_t displayNumero = 0;
@@ -247,7 +247,7 @@ void setup()
     controller_1.add(&thKeypad);   //Teclado de membrana 
     controller_1.add(&thShell);    //Terminal Putty
     controller_1.add(&thRTC);      //RTC
-    //controller_1.add(&thProcesso); //Execução de Processo
+    controller_1.add(&thProcesso); //Execução de Processo
     controller_1.add(&thGrava10minutos);
     //==========================================================================
 
@@ -289,12 +289,12 @@ void setup()
 
     
     buzzer = 100;
-
+    /*
     while(1){
        SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);               
        //CONDENSADOR SENSOR_NTC VACUOMETRO COMUM
     }    
-
+    */
 
     
     
@@ -450,115 +450,58 @@ void doProcesso(){
        memoFlags=persistente.statusgen.value & 0b11100001;
        }
 
-        
-       if(flag_processo_auto==true)
-         {
          
-         flag_condensador=true; 
-         for(uint8_t i=1; i<MAXDEVICE; i++)
-            {
-            SensoresAtuadores[i].setpoint =  hardDisk.EEPROMReadFloat(20 * i + 0x00);
-            SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i + 0x04);
-            SensoresAtuadores[i].offset =    hardDisk.EEPROMReadFloat(20 * i + 0x08);
-            SensoresAtuadores[i].tempo_ON =  hardDisk.EEPROMReadFloat(20 * i + 0x0C);
-            SensoresAtuadores[i].tempo_OFF = hardDisk.EEPROMReadFloat(20 * i + 0x10);
-            }
-                            
-           if(Relay_Valor_Composto(CONDENSADOR)<Relay_SetPoint(CONDENSADOR))
-              {
-              flag_vacuo=true; 
-              if(Relay_Valor_Composto(VACUOMETRO)<Relay_SetPoint(VACUOMETRO))
+       if(flag_processo_auto==true)  //INICIOU UM PROCESSO?
+         { 
+ 
+             flag_condensador=true;      //Liga o condensador
+    
+             if(Relay_Valor_Composto(CONDENSADOR)<Relay_Setagem_Baixa(CONDENSADOR))
                 {
-                flag_aquecimento=true;    
+                flag_vacuo=true;
+                if(Relay_Valor_Composto(VACUOMETRO)<Relay_Setagem_Baixa(VACUOMETRO))        
+                  {
+                    if(Relay_Valor_Composto(SENSOR_NTC)<Relay_Setagem_Baixa(SENSOR_NTC))
+                      {
+                      flag_aquecimento=true;
+                      }
+                    else
+                    if(Relay_Valor_Composto(SENSOR_NTC)>Relay_SetPoint(SENSOR_NTC))
+                      {
+                      flag_aquecimento=false;    
+                      }
+                  }
+                else if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))
+                  {
+                    flag_aquecimento=false;  
+                  }
+                } 
+             else if(Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR))
+                {
+                flag_vacuo=false;
+                flag_aquecimento=false; 
                 }
-              }
-           else
-              {
-              flag_vacuo=false; 
-              if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))
-                {
-                flag_aquecimento=false;    
-                }                  
-              }
-              
-         
-         if(flag_condensador) SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
-         if(flag_vacuo)       SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);  else  SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);
-         if(flag_aquecimento) SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);  else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,  LOW); 
-         if(flag_aquecimento) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);       else  SensoresAtuadores[COMUM].relayManager(COMUM,  LOW);             
-
-         }
-     else
+         }            
+       else
          {
-         if(flag_condensador) SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
-         if(flag_vacuo)       SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);  else  SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);
-         if(flag_aquecimento) SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);  else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,  LOW); 
-         if(flag_aquecimento) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);       else  SensoresAtuadores[COMUM].relayManager(COMUM,  LOW);                         
+         flag_vacuo=false;                                               //Desliga o vácuo
+         if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO)) 
+           {
+           flag_aquecimento=false;    
+           }                  
          }
+            
+             
+       
+         //---------------------------------------------------------------------------------------------------------------------------------------------------   
+         if(flag_condensador) SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH);else SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);            
+         if(flag_vacuo)       SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);  else SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);            
+         if(flag_aquecimento) SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);  else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,  LOW); 
+         if(flag_aquecimento) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);            else  SensoresAtuadores[COMUM].relayManager(COMUM,  LOW);                      
+        
 }
 
-
-
-/*
-//------------------------controle de potencia utilizando os reles---------------------------------------
-#define RELAY_SOBE                10
-#define RELAY_DESCE               20
-#define RELAY_ESTADO_INATIVO      30
-#define RELAY_ESTADO_ATIVO        40
-#define RELAY_AQUECER             50
-#define RELAY_REFRIGERAR          60
-#define Relay_Status(x)           SensoresAtuadores[(x)].power.relayStatus  //SOBE ou DESCE
-#define Relay_Power(x, y)         SensoresAtuadores[(x)].power.powerRelay(x, y) //HIGH ou LOW (Liga/Desliga)
-#define Relay_Valor_Simples(x)    SensoresAtuadores[(x)].valorDeLeitura(SIMPLES) //Falor real mais o offset
-#define Relay_Valor_Composto(x)   SensoresAtuadores[(x)].valorDeLeitura(COMPOSTO) //Falor real mais o offset
-#define Relay_SetPoint(x)         SensoresAtuadores[(x)].setpoint  //setpoint
-#define Relay_Histerese(x)        SensoresAtuadores[(x)].histerese //histerese
-#define Relay_OffSet(x)           SensoresAtuadores[(x)].offset //offset
-#define Relay_Setagem_Baixa(x)    SensoresAtuadores[(x)].setpoint-SensoresAtuadores[(x)].histerese //Limite inferior
-#define Relay_Setagem_Alta(x)     SensoresAtuadores[(x)].setpoint+SensoresAtuadores[(x)].histerese //Limite Superior
-#define Relay_Modo(x)             SensoresAtuadores[(x)].modo  //Aquece ou Resfria
-
-
-#define VOLTIMETRO  0
-#define CONDENSADOR 1
-#define SENSOR_NTC  2
-#define VACUOMETRO  3
-#define COMUM       4         
-
-
-SensoresAtuadores[i].setpoint = hardDisk.EEPROMReadFloat(20 * i + 0);
-SensoresAtuadores[i].histerese = hardDisk.EEPROMReadFloat(20 * i + 4);
-SensoresAtuadores[i].offset = hardDisk.EEPROMReadFloat(20 * i + 8);
-SensoresAtuadores[i].status = NORMAL;
-SensoresAtuadores[i].power.relayPin = 2;
-SensoresAtuadores[i].value = 25.0;
-
-
-unsigned relay_buzzer      : 1;
-unsigned relay_condensador : 1;
-unsigned relay_aquecimento : 1;  //Fix Inverter no Hardware condensador e aquecimento        
-unsigned relay_vaccum      : 1;      
-unsigned relay_comum       : 1;
-
-
-
-unsigned flag_processo_auto : 1;        
-unsigned flag_condensador   : 1;
-unsigned flag_vacuo         : 1;
-unsigned flag_aquecimento   : 1;
-unsigned flag_datalog       : 1;
-
-
-*/
-
-
-
-
-
-
-
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void doAutoRelay() {
     static uint8_t escalona=1;
     /*
@@ -828,7 +771,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         Serial.printf("Voce setou tempo do rele ligado em %3.3f *C\n", parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET ");
         SensoresAtuadores[displayNumero].tempo_ON= parametro;
-        tempoCNT=parametro;
+        tempoCNT[displayNumero]=parametro;
         hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x0C, parametro);  //20 * i + 4
     }
     else if(codigo==CODE_TEMPO_ON_VIEW) //6
@@ -848,7 +791,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         Serial.printf("Voce setou tempo do rele desligado em %3.3f *C\n", parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET ");
         SensoresAtuadores[displayNumero].tempo_OFF= parametro;
-        tempoCNT=parametro;
+        tempoCNT[displayNumero]=parametro;
         hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro);  //20 * i + 4
     }
     else if(codigo==CODE_TEMPO_OFF_VIEW) //6
@@ -1467,7 +1410,7 @@ void doDisplay(void) {
 void doRTC() {
     milisegundo++;
 
-    if(tempoCNT>0) tempoCNT--;
+    for(uint8_t i=1;i<MAXDEVICE;i++) if(tempoCNT[i]>0) tempoCNT[i]--;
 
     if (tempoDecorrido > 0) tempoDecorrido--;
     if (buzzer > 0)
@@ -1579,8 +1522,8 @@ void loadDefaultUser(){
         SensoresAtuadores[i].tempo_ON  = hardDisk.EEPROMReadFloat(20 * i + 0x0C);
         SensoresAtuadores[i].tempo_OFF = hardDisk.EEPROMReadFloat(20 * i + 0x10);
         SensoresAtuadores[i].status    = NORMAL;
-        SensoresAtuadores[i].sentido   = RELAY_SOBE;
-        SensoresAtuadores[i].modo      = RELAY_LIGADO_SOBE;
-        SensoresAtuadores[i].value     = 0.0;
+        SensoresAtuadores[i].estado    = RELAY_DESLIGADO;
+        //SensoresAtuadores[i].modo      = RELAY_LIGADO_SOBE;
+        //SensoresAtuadores[i].value     = 0.0;
      }  
 }

@@ -6,7 +6,7 @@
 
 
 extern Controladores SensoresAtuadores[MAXDEVICE];
-extern uint16_t tempoCNT;
+extern uint16_t tempoCNT[MAXDEVICE];
 extern Eeprom_Indka hardDisk ;
 
 float  Controladores::valorDeLeitura(uint8_t tipo) {
@@ -18,6 +18,7 @@ float  Controladores::valorDeLeitura(uint8_t tipo) {
 
 
 //--------------------------------------------------------------------
+/*
 void  Controladores::autoRelay(uint8_t device)
 {
 
@@ -51,7 +52,7 @@ void  Controladores::autoRelay(uint8_t device)
               }
       }  
 }
-
+*/
 
 //------------------------------------------------------------------------------
 void Controladores::relayManager(uint8_t device, uint8_t situacao)
@@ -61,17 +62,17 @@ void Controladores::relayManager(uint8_t device, uint8_t situacao)
 
     if(situacao==HIGH) //Ligado
       {
-        if(tempoCNT==0)
+        if(tempoCNT[device]==0)
           {
           if(relayStado(device)==false) //RELE DESLIGADO ? 
             {
-              tempoCNT= hardDisk.EEPROMReadFloat(20 * device + 0x0C);
+              tempoCNT[device]= hardDisk.EEPROMReadFloat(20 * device + 0x0C);
               extra74HC595.chip.value &= ~auxiliar; //LIGAR RELÊ
             }
           else
             {
-              tempoCNT=hardDisk.EEPROMReadFloat(20 * device + 0x10);
-              extra74HC595.chip.value |= auxiliar; //Desligar RELÊ
+              tempoCNT[device]=hardDisk.EEPROMReadFloat(20 * device + 0x10);
+              if(SensoresAtuadores[device].tempo_OFF!=0)extra74HC595.chip.value |= auxiliar; //Desligar RELÊ
             }  
           }
       }
