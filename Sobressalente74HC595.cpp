@@ -39,5 +39,5 @@ void Sobressalente74HC595::chipSetValue(uint8_t pin, uint8_t estado) {
 */
 
 void Sobressalente74HC595::desligaAll() {
-	   chip.value = 0b00011110;
+	   chip.value = 0b00011111;
 }

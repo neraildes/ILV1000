@@ -32,7 +32,7 @@ void Modulo595::clearDisplay()
          sendDisplay("    ", NORMAL);
          sendDisplay("    ", NORMAL);
          sendDisplay("    ", NORMAL);
-         sendSingle(0b00011110);
+         sendSingle(0b00011111);
          show();
          delay(1);
          }

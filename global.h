@@ -3,7 +3,9 @@
 
 #include <Arduino.h>
 
-#define COM_BLYNK_WIFI
+//#define COM_BLYNK_WIFI
+
+//#define DEBUG;
 
 #define MAXDEVICE 4 //Numero máximo de dispositivos
 
@@ -68,18 +70,18 @@
 #define FUNCAO_SHOWMESSAGE 4
 
 //DEFINICOES DOS SENSORES
-#define VOLTIMETRO  0
+#define COMUM       0
 #define CONDENSADOR 1
 #define SENSOR_NTC  2
 #define VACUOMETRO  3
-#define COMUM       4
 
-const String DEVICE[4] = { "VOLTIMETRO",
+
+const String DEVICE[4] = { "COMUM",
                            "CONDENSADOR",
                            "SENSOR_NTC",
                            "VACUOMETRO"
                             };
-const String SUFIXO[4] = { "V.",
+const String SUFIXO[4] = { ".",
                           "°C.",
                           "°C.",
                           "mmHg."

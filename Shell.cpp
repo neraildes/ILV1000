@@ -283,17 +283,23 @@ void Shell::prompt(void)
             {
                 blkPrintln("Erro de sintaxe.");
                 blkPrintln("Use:");
-                blkPrintln("relay <condensador/");
+                blkPrintln("relay <comum/");
+                blkPrintln("       condensador/");
                 blkPrintln("       ntc/");
                 blkPrintln("       vaccum/");
-                blkPrintln("       comum>");
                 blkPrintln("       <on / off>");
             }            
             else 
             {
                 uint8_t releNum;
                 uint8_t elevado;
-                if(parametro=="CONDENSADOR")
+                //releNum=pow(2,elevado);  
+                
+                if(parametro=="COMUM")
+                  {
+                  releNum=COMUM;    
+                  }                
+                else if(parametro=="CONDENSADOR")
                   {
                   releNum=CONDENSADOR;     
                   }
@@ -305,25 +311,24 @@ void Shell::prompt(void)
                   {
                   releNum=VACUOMETRO;     
                   }
-                else if(parametro=="COMUM")
-                  {
-                  releNum=COMUM;    
-                  } 
+ 
 
-                elevado=pow(2,releNum);          
+                elevado=pow(2,releNum); 
+                Serial.println(elevado,BIN);  
+                         
                           
                 parametro = extraiProximoParametro(&buffer, ' ');
-                
+                //Serial.print("Antes statusgen.value  =");Serial.println(persistente.statusgen.value,BIN);
                 if (parametro == "ON")
                 {                    
                     persistente.statusgen.value |= elevado;
-                    //SensoresAtuadores[releNum].Relay_Power(releNum, HIGH);                   
                 }
                 else if (parametro == "OFF")
                 {
                     persistente.statusgen.value &= ~elevado;
-                    //SensoresAtuadores[releNum].Relay_Power(releNum, LOW);
                 }
+                Serial.print("depois statusgen.value =");Serial.println(persistente.statusgen.value,BIN);
+                Serial.print("Chip 74HC595    =");Serial.println(extra74HC595.chip.value,BIN);
                
             }            
         }
@@ -428,16 +433,6 @@ void Shell::prompt(void)
         }
         else if ((parametro == DEVICE[displayNumero]) && (buffer != ""))
         {
-            /*
-            String sufixo;
-            switch (displayNumero)
-            {
-            case VOLTIMETRO: sufixo = "V."; break;
-            case CONDENSADOR: sufixo = "°C."; break;
-            case SENSOR_NTC: sufixo = "°C."; break;
-            case VACUOMETRO: sufixo = "mmHg."; break;
-            }
-            */
             parametro = extraiProximoParametro(&buffer, ' ');
             if (parametro == "/INFO")
             {
