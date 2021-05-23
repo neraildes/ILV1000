@@ -332,6 +332,20 @@ void Shell::prompt(void)
                
             }            
         }
+        else if (parametro=="STATUS")
+        {
+          uint8_t extra;
+          blkPrintln("Status das flags do sistema.");
+          for(uint8_t i=0;i<8;i++)
+             { 
+             blkPrint(DEVICEShow[i]);
+             extra=pow(2,i);             
+             if((persistente.statusgen.value&extra)!=0)
+               blkPrintln(" Ativo");
+             else
+               blkPrintln(" Inativo");               
+             }
+        }
         else if (parametro=="DEVICES")
         {
             parametro = extraiProximoParametro(&buffer, ' ');
@@ -556,6 +570,7 @@ void Shell::prompt(void)
                 blkPrintln(" Devices - Exibe dispositivos disponíveis.");
                 blkPrintln(" Thread  - Habilita / Desabilita Thread.");
                 blkPrintln(" Relay   - Ativa / Desativa relê.");
+                blkPrintln(" Status  - Exibe o status dos reles");
                 blkPrintln("--------------------------------------------");
         }
         else if (parametro == "EMPRESA")

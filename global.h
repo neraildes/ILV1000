@@ -76,11 +76,23 @@
 #define VACUOMETRO  3
 
 
-const String DEVICE[4] = { "COMUM",
-                           "CONDENSADOR",
-                           "SENSOR_NTC",
-                           "VACUOMETRO"
-                            };
+const String DEVICE[MAXDEVICE] = {"COMUM",
+                                  "CONDENSADOR",
+                                  "SENSOR_NTC",
+                                  "VACUOMETRO"
+                                 };
+
+                           
+const String DEVICEShow[8]={"COMUM...........= ",
+                            "CONDENSADOR.....= ",
+                            "SENSOR_NTC......= ",
+                            "VACUOMETRO......= ",
+                            "NONE............= ",
+                            "NONE............= ",
+                            "NONE............= ",
+                            "MODO AUTOMATICO = "
+                           };                           
+                            
 const String SUFIXO[4] = { ".",
                           "°C.",
                           "°C.",

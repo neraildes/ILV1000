@@ -449,10 +449,16 @@ void doProcesso(){
        
      //Salva estado da liofilização  
      
-     if(memoFlags!=(persistente.statusgen.value & 0b11100000))
+     if(memoFlags!=(persistente.statusgen.value)&0b11100000)
        {
        Serial.print("Gravando Status (Por mudança de estado.)...");
        Serial.println(persistente.statusgen.value, BIN);
+       /*
+       flag_condensador=false;
+       flag_vacuo=false;
+       flag_comum=false;
+       flag_aquecimento=false;
+       */
        persistente.save();
        memoFlags=persistente.statusgen.value & 0b11100000;
        }
@@ -1434,6 +1440,9 @@ void loadDefaultFactory(){
     hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_INATIVO,   0.0);   //Tempo OFF
     
     loadDefaultUser();   
+
+    persistente.statusgen.value=0b00000000;
+    persistente.save();
     
     funcao = FUNCAO_NONE;
     Serial.println("Valores padrao de fabrica carregados!");            
