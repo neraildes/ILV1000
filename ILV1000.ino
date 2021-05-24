@@ -50,7 +50,7 @@
 EnergyMonitor emon1;             // Create an instance
 
 
-
+char versao[]=FVERSION ;
 
 extern bool flag_multicore;
 
@@ -185,11 +185,16 @@ void setup()
     persistente.init(); //Inicializa dados persistentes
     startTimer();
     //--------------------------------------------------  
-
+    for (uint8_t i = 0; i < MAXDEVICE; i++) doLerSensor();
+    
+    
+    comandos.empresa();
+    comandos.blkPrintln("Aguarde, conectando...");
     exibeRevisao();
+    comandos.blkPrintln("Pronto!");
 
   
-    for (uint8_t i = 0; i < MAXDEVICE; i++) doLerSensor();
+   
    
     //--------------------------------------------------
     
@@ -449,7 +454,7 @@ void doProcesso(){
        
      //Salva estado da liofilização  
      
-     if(memoFlags!=(persistente.statusgen.value)&0b11100000)
+     if(memoFlags!=(persistente.statusgen.value & 0b11100000))
        {
        Serial.print("Gravando Status (Por mudança de estado.)...");
        Serial.println(persistente.statusgen.value, BIN);
@@ -460,7 +465,7 @@ void doProcesso(){
        flag_aquecimento=false;
        */
        persistente.save();
-       memoFlags=persistente.statusgen.value & 0b11100000;
+       memoFlags=(persistente.statusgen.value & 0b11100000);
        }
       
          
@@ -728,7 +733,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     parametro /= 1000.0;
     if(displayNumero==0)
       {
-      Serial.println("Entrou em display = 0");  
+      comandos.blkPrintln("Entrou em display = 0");  
       funcao = FUNCAO_NONE;
       tempoDecorrido=0;
       autorestore=0;
@@ -737,7 +742,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
       }
     else if(codigo==CODE_OFFSET_SETAR) //1
     {
-        Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
+        comandos.blkPrintln("Voce setou o offset em "); comandos.blkPrint(parametro);
         SensoresAtuadores[displayNumero].offset = parametro;
         hardDisk.EEPROMWriteFloat(20 * displayNumero + 8, parametro);        
     }
@@ -748,11 +753,11 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"OFF.S");
         SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 8);
-        Serial.printf("Voce esta visualizando o Offset");        
+        comandos.blkPrintln("Voce esta visualizando o Offset");        
     }
     else if(codigo==CODE_SETPOINT_SETAR) //3
     {
-        Serial.printf("Voce setou o offset em %3.3f *C\n", parametro);
+        comandos.blkPrint("Voce setou o offset em "); comandos.blkPrintln(parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
         SensoresAtuadores[displayNumero].setpoint = parametro;
         hardDisk.EEPROMWriteFloat(20 * displayNumero + 0, parametro);  //20 * i + 0
@@ -764,7 +769,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET.P");
         SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0);
-        Serial.printf("Voce esta visualizando o SetPoint"); 
+        comandos.blkPrintln("Voce esta visualizando o SetPoint"); 
     }
 
 
@@ -772,7 +777,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
 
     else if(codigo==CODE_TEMPO_ON_SETAR) //5
     {
-        Serial.printf("Voce setou tempo do rele ligado em %3.3f *C\n", parametro);
+        comandos.blkPrintln("Voce setou tempo do rele ligado em "); comandos.blkPrint(parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET ");
         SensoresAtuadores[displayNumero].tempo_ON= parametro;
         tempoCNT[displayNumero]=parametro;
@@ -785,14 +790,14 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"----");
         SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C);
-        Serial.printf("Voce esta visualizando o Tempo Ligado do Rele.");        
+        comandos.blkPrintln("Voce esta visualizando o Tempo Ligado do Rele.");        
     }
 
 
 
     else if(codigo==CODE_TEMPO_OFF_SETAR) //7
     {
-        Serial.printf("Voce setou tempo do rele desligado em %3.3f *C\n", parametro);
+        comandos.blkPrintln("Voce setou tempo do rele desligado em "); comandos.blkPrint(parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"SET ");
         SensoresAtuadores[displayNumero].tempo_OFF= parametro;
         tempoCNT[displayNumero]=parametro;
@@ -805,7 +810,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"----");
         SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10);
-        Serial.printf("Voce esta visualizando o Tempo DESLigado do Rele.");        
+        comandos.blkPrintln("Voce esta visualizando o Tempo Desligado do Rele.");        
     }
 
 
@@ -818,7 +823,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     
     else if(codigo==CODE_HISTERESE_SETAR) //9
     {
-        Serial.printf("Voce setou a histerese em %3.3f *C\n", parametro);
+        comandos.blkPrintln("Voce setou a histerese em ");comandos.blkPrint(parametro);
         strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
         SensoresAtuadores[displayNumero].histerese = parametro;
         hardDisk.EEPROMWriteFloat(20 * displayNumero + 4, parametro);  //20 * i + 4
@@ -830,10 +835,11 @@ void executaTarefa(uint32_t codigo, float parametro) {
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem,"HIST");
         SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 4);
-        Serial.printf("Voce esta visualizando o Histerese.");        
+        comandos.blkPrintln("Voce esta visualizando o Histerese.");        
     }
     else if(codigo==CODE_CONDENSADOR_ON) //20
     {
+        comandos.blkPrintln("Voce ligou o condensador.");
         relay_condensador = !true;          
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
@@ -842,6 +848,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_CONDENSADOR_OFF) //21
     {
+        comandos.blkPrintln("Voce desligou o condensador.");      
         relay_condensador = !false;
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
@@ -850,6 +857,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_VACCUM_ON) //22
     {
+        comandos.blkPrintln("Voce ligou a bomba de vácuo.");      
         relay_vaccum = !true;
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
@@ -858,6 +866,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_VACCUM_OFF) //23
     {
+        comandos.blkPrintln("Voce desligou a bomba de vácuo.");       
         relay_vaccum = !false;
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
@@ -866,6 +875,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_AQUECIMENTO_ON) //24
     {
+        comandos.blkPrintln("Voce ligou o aquecimento.");       
         relay_aquecimento = !true;
         relay_comum = !true;
         tempoDecorrido=5000;
@@ -875,6 +885,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_AQUECIMENTO_OFF) //25
     {
+        comandos.blkPrintln("Voce desligou o aquecimento.");       
         relay_aquecimento = !false;
         relay_comum = !false;
         tempoDecorrido=5000;
@@ -885,6 +896,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     else if(codigo==CODE_DATALOG_ON)  //26
     {
         //Colocar função aqui.
+        comandos.blkPrintln("Voce ligou o datalog.");       
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"ON  ");
@@ -893,6 +905,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     else if(codigo==CODE_DATALOG_OFF) //27
     {
         //Colocar Funcao aqui.
+        comandos.blkPrintln("Voce desligou o datalog.");       
         tempoDecorrido=5000;
         SensoresAtuadores[displayNumero].status = DINAMICO;
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");
@@ -900,6 +913,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_LIOFILIZAR_AUTO_ON)  //100
     {
+        comandos.blkPrintln("Voce ligou o modo automático do Liofilizador");       
         tempoDecorrido=3000;        
         flag_processo_auto = true;
         strcpy(SensoresAtuadores[displayNumero].mensagem1," ON ");
@@ -907,6 +921,7 @@ void executaTarefa(uint32_t codigo, float parametro) {
     }
     else if(codigo==CODE_LIOFILIZAR_AUTO_OFF) //101
     {
+        comandos.blkPrintln("Voce desligou o modo automático do Liofilizador");        
         tempoDecorrido=3000;        
         flag_processo_auto = false;
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"OFF ");           
@@ -921,9 +936,9 @@ void executaTarefa(uint32_t codigo, float parametro) {
         funcao = FUNCAO_SHOWMESSAGE;
         SaidaAutomatica(SETA);
         strcpy(SensoresAtuadores[displayNumero].mensagem1,"NULL");
-        Serial.printf("Voce entrou com parâmetro nulo!", parametro);
+        comandos.blkPrintln("Voce entrou com parâmetro nulo!");       
         buzzer=1000;
-        Serial.println("Codigo invalido!");
+        comandos.blkPrintln("Codigo invalido!");
     }
 
 
@@ -953,24 +968,51 @@ void FormaNumero(float* number) {
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //SetPoint do Sistema
 void Pressionou_a_Tecla_A() {
+     if(flag_processo_auto)comandos.blkPrint("Cancelando modo Automático.");
      flag_processo_auto=false; 
-     flag_vacuo=false;
-     flag_aquecimento=false;
-     flag_condensador = !flag_condensador;
+     //flag_vacuo=false;
+     //flag_aquecimento=false;
+     
+     if(flag_condensador)
+       {
+       flag_condensador=false;
+       comandos.blkPrintln("Desligando condensador.");
+       }
+     else
+       {
+       flag_condensador=true;
+       comandos.blkPrintln("Ligando condensador.");          
+       }
+     
+     
 }
 
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //Histerese do sistema
 void Pressionou_a_Tecla_B() {
+     if(flag_processo_auto)comandos.blkPrint("Cancelando modo Automático.");
      flag_processo_auto=false;
-     flag_aquecimento=false;
-     flag_condensador=false;
-     relay_vaccum = !relay_vaccum;
+     //flag_aquecimento=false;
+     //flag_condensador=false;
+     
+     if(flag_vacuo)
+       {
+       flag_vacuo=false;
+       comandos.blkPrintln("Desligando bomba de vácuo.");
+       }
+     else
+       {
+       flag_vacuo =true;
+       comandos.blkPrintln("Ligando bomba de vácuo.");          
+       }     
 }
 
 //====================================================================================
 //Code do Sistema
 void Pressionou_a_Tecla_C() {
+    comandos.blkPrintln("Modo de digitação de Código");
+    comandos.blkPrintln("Se não souber o código, digite");
+    comandos.blkPrintln("no prompt de comandos 'CODES'.");
     funcao = FUNCAO_CODIGO;
     decimal = 0.01;
     for (int8_t i = 0; i < MAXDEVICE; i++)
@@ -1028,6 +1070,7 @@ void Pressionou_Asterisco() {
     autorestore = -1;
     funcao = FUNCAO_NONE;
     enterDoKeypad = 0;
+    comandos.blkPrintln("Função cancelada pelo usuário");
     //PadronizaSensoresAtuadores("", NORMAL, false);
     //PadronizaValordoTempFloat(0);
     for (int8_t i = 0; i < MAXDEVICE; i++)
@@ -1038,6 +1081,7 @@ void Pressionou_Asterisco() {
     }
     if (++displayNumero >= MAXDEVICE) displayNumero = 0;
     flag_zerar = false;
+    
 }
 
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -1068,7 +1112,7 @@ void Pressionou_Tecla_Sharp()
         if (enterDoKeypad == 0)
         {
             tempoDecorrido = 2000;
-            Serial.print("Digitou o codigo ");
+            Serial.print("Você digitou o codigo ");
             Serial.println(SensoresAtuadores[displayNumero].temp, 3);
             codigo = round(SensoresAtuadores[displayNumero].temp * 1000);
 
@@ -1091,7 +1135,7 @@ void Pressionou_Tecla_Sharp()
                    strcpy(texto,"D.LOG");
                    break;
               case CODE_DEFAULT_FACTORE: 
-                   strcpy(texto,"DEFA.");
+                   strcpy(texto,"FACT.");
                    break;                   
               case CODE_LIOFILIZAR_AUTO_ON:
               case CODE_LIOFILIZAR_AUTO_OFF:
@@ -1150,7 +1194,7 @@ void Pressionou_Tecla_Sharp()
             case CODE_TEMPO_ON_VIEW:
             case CODE_TEMPO_OFF_VIEW:
                  executaTarefa(codigo, 0);
-                 enterDoKeypad = 0;
+                 flag_zerar=true; //Zera variável de quantidade de entradas;
                  break;         
             }
              
@@ -1162,7 +1206,7 @@ void Pressionou_Tecla_Sharp()
             Serial.print("Com o parametro ");
             Serial.println(SensoresAtuadores[displayNumero].temp, 3);
             parametro = round(SensoresAtuadores[displayNumero].temp * 1000);
-            enterDoKeypad = 0;
+            flag_zerar=true; //Zera variável de quantidade de entradas;
             executaTarefa(codigo, parametro);
         }
 
@@ -1207,7 +1251,7 @@ void doKeypad()
         case '#':Pressionou_Tecla_Sharp(); break;
         default:Pressionou_Tecla_Numerica(); break;
         }
-        Serial.println(tecla_pressionada);
+        //Serial.println(tecla_pressionada);
         tecla_pressionada = 0;
     }
 }
@@ -1364,8 +1408,7 @@ void doRTC() {
 
 
 void exibeRevisao()
-    {
-    char versao[]=FVERSION ;
+    {   
     bool flag_abandona=false;
         while(1) {
             seteSegmentos.sendDisplay("    ", NORMAL);
@@ -1425,6 +1468,13 @@ void loadDefaultFactory(){
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_ATIVO,  1000);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_INATIVO, 0.0);  //Tempo OFF
 
+    //---------------------VACUOMETRO-------------------------
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_SET, 1300.0);     //SetPoint Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_HIS, 200.0);      //Histerese Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_OFF, 0.0);        //Off Set Vacuometro
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_ATIVO,  1000.0);     //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_INATIVO,   0.0);   //Tempo OFF    
+
     //--------------------NTC---------------------------------
     hardDisk.EEPROMWriteFloat(ADD_NTC_SET,     35.0);  //SetPoint NTC
     hardDisk.EEPROMWriteFloat(ADD_NTC_HIS,      1.0);  //Histerese NTC
@@ -1432,12 +1482,7 @@ void loadDefaultFactory(){
     hardDisk.EEPROMWriteFloat(ADD_NTC_ATIVO,   10000.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_NTC_INATIVO, 20000.0);  //Tempo OFF
 
-    //---------------------VACUOMETRO-------------------------
-    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_SET, 1300.0);     //SetPoint Vacuometro
-    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_HIS, 200.0);      //Histerese Vacuometro
-    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_OFF, 0.0);        //Off Set Vacuometro
-    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_ATIVO,  1000.0);     //Tempo ON
-    hardDisk.EEPROMWriteFloat(ADD_VACUOMETRO_INATIVO,   0.0);   //Tempo OFF
+
     
     loadDefaultUser();   
 

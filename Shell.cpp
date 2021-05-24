@@ -9,6 +9,7 @@
 #include "Sobressalente74HC595.h"
 #include "Controladores.h"
 #include "Persistente.h"
+#include "versao.h"
 
 
 extern uint8_t  hora;
@@ -44,6 +45,8 @@ extern Persistente persistente;
 bool thread_vector[8] = { true, true, true, true, true, true, true, true };
 
 bool flag_hora   = false;
+
+extern char versao[] ;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -260,6 +263,15 @@ void Shell::prompt(void)
             Serial.write(12);
             ObjBlynk.terminalClear();
         }
+
+        else if (parametro == "BLYNK")
+        {
+        #ifdef COM_BLYNK_WIFI
+           blkPrintln("O Blynk está compilado.");
+        #else
+           blkPrintln("Sem Blynk.");
+        #endif 
+        }
         else if (parametro == "BUZZER")
         {
             parametro = extraiProximoParametro(&buffer, ' ');
@@ -331,6 +343,23 @@ void Shell::prompt(void)
                 Serial.print("Chip 74HC595    =");Serial.println(extra74HC595.chip.value,BIN);
                
             }            
+        }
+        else if (parametro=="AUTO")
+        {
+          parametro = extraiProximoParametro(&buffer, ' ');
+          if(parametro=="ON")
+            {
+             flag_processo_auto=true;
+            }
+          else if (parametro=="OFF")  
+            {
+             flag_processo_auto=false;
+            }       
+          else
+             {
+             blkPrintln("Erro de Sintaxe.");
+             blkPrintln("Use 'auto <on/off>'");
+             }
         }
         else if (parametro=="STATUS")
         {
@@ -524,7 +553,7 @@ void Shell::prompt(void)
                 else
                 {
                     SensoresAtuadores[displayNumero].tempo_ON = parametro.toFloat();
-                    blkPrint("Ajustando Tempo ON para "); blkPrint(SensoresAtuadores[displayNumero].tempo_ON,2); blkPrintln(SUFIXO[displayNumero]);
+                    blkPrint("Ajustando Tempo ON para "); blkPrint(SensoresAtuadores[displayNumero].tempo_ON,2); blkPrintln("ms.");
                     hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x0C, parametro.toFloat());
                 }
             }
@@ -541,7 +570,7 @@ void Shell::prompt(void)
                 else
                 {
                     SensoresAtuadores[displayNumero].tempo_OFF = parametro.toFloat();
-                    blkPrint("Ajustando Tempo OFF para "); blkPrint(SensoresAtuadores[displayNumero].tempo_OFF,2); blkPrintln(SUFIXO[displayNumero]);
+                    blkPrint("Ajustando Tempo OFF para "); blkPrint(SensoresAtuadores[displayNumero].tempo_OFF,2); blkPrintln("ms.");
                     hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro.toFloat());
                 }
             }
@@ -559,7 +588,7 @@ void Shell::prompt(void)
         }
         else if (parametro=="HELP")
         {
-                blkPrintln("--------------------------------------------");
+                blkPrintln("--------------------------------------------------");
                 blkPrintln("Digite os seguintes comandos:");
                 blkPrintln(" Cls     - Limpa a tela.");
                 blkPrintln(" Help    - Exibe esta ajuda.");
@@ -571,15 +600,49 @@ void Shell::prompt(void)
                 blkPrintln(" Thread  - Habilita / Desabilita Thread.");
                 blkPrintln(" Relay   - Ativa / Desativa relê.");
                 blkPrintln(" Status  - Exibe o status dos reles");
-                blkPrintln("--------------------------------------------");
+                blkPrintln(" Codes   - Exibe os códigos do teclado");
+                blkPrintln(" Auto    - Inicia ou Abandona um processo (on/off)");
+                blkPrintln(" Blynk   - Exibe se o blink foi compilado");
+                blkPrintln("--------------------------------------------------");
         }
+        else if (parametro == "CODES")
+        {
+                //blkPrintln("---------------------------");
+                blkPrintln("Códigos do teclados");
+                blkPrintln("---------------------------");
+                blkPrintln("Setar OffSet..............1");
+                blkPrintln("Visualizar Offset.........2");
+                blkPrintln("Setar SetPoint............3");
+                blkPrintln("Visualizar SetPoint.......4");
+                blkPrintln("Setar Histerese...........5");
+                blkPrintln("Visualizar Histerese......6");
+                blkPrintln("Setar Tempo Ativo.........7");
+                blkPrintln("Visualizar Tempo Ativo....8");
+                blkPrintln("Setar Tempo Inativo.......9");
+                blkPrintln("Visualizar Tempo Inativo.10");
+                //blkPrintln("- - - - - - - - - - - - - -");
+                blkPrintln("Ligar Condensador........20");
+                blkPrintln("Desligar Condensador.....21");
+                blkPrintln("Ligar Vácuo..............22");
+                blkPrintln("Desligar Vácuo...........23");
+                blkPrintln("Ligar Aquecimento........24");
+                blkPrintln("Desligar Aquecimento.....25");
+                blkPrintln("Ligar Datalog............26");
+                blkPrintln("Desligar Datalog.........27");
+                //blkPrintln("- - - - - - - - - - - - - -");
+                blkPrintln("Ativar modo Automático..100");                
+                blkPrintln("Ativar modo Manual......101");
+                blkPrintln("Carregar valores padrão.145");
+                blkPrintln("---------------------------");
+        }        
         else if (parametro == "EMPRESA")
         {
                 empresa();
         }
         else if (parametro == "MODEL")
         {
-                blkPrintln("Hardware modelo ILV1000 revisao 1.0.0.");
+                blkPrint("Hardware modelo ILV1000 revisao ");
+                blkPrintln(versao);
         }
         else
         {

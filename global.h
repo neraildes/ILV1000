@@ -13,7 +13,7 @@
 
 #define LED_BLINK    1
 
-#define TIME_BUZZER 25  //Tempo de buzzer do teclado
+#define TIME_BUZZER 25  //Tempo de buzzer do teclado numérico
 
 //Captura no conversor AD
 #define AD_MINIMO 0
@@ -39,17 +39,17 @@
 #define ADD_CONDENSADOR_ATIVO   0x20
 #define ADD_CONDENSADOR_INATIVO 0x24
 
-#define ADD_NTC_SET             0X28  //4 bytes
-#define ADD_NTC_HIS             0X2C  //4 bytes
-#define ADD_NTC_OFF             0X30  //4 bytes
-#define ADD_NTC_ATIVO           0x34 
-#define ADD_NTC_INATIVO         0x38
+#define ADD_VACUOMETRO_SET      0X28  //4 bytes
+#define ADD_VACUOMETRO_HIS      0X2C  //4 bytes
+#define ADD_VACUOMETRO_OFF      0X30  //4 bytes
+#define ADD_VACUOMETRO_ATIVO    0x34
+#define ADD_VACUOMETRO_INATIVO  0x38
 
-#define ADD_VACUOMETRO_SET      0X3C  //4 bytes
-#define ADD_VACUOMETRO_HIS      0X40  //4 bytes
-#define ADD_VACUOMETRO_OFF      0X44  //4 bytes
-#define ADD_VACUOMETRO_ATIVO    0x48
-#define ADD_VACUOMETRO_INATIVO  0x4C
+#define ADD_NTC_SET             0X3C  //4 bytes
+#define ADD_NTC_HIS             0X40  //4 bytes
+#define ADD_NTC_OFF             0X44  //4 bytes
+#define ADD_NTC_ATIVO           0x48 
+#define ADD_NTC_INATIVO         0x4C
 
 #define ADD_STATUSGEN           0x50  //1 byte
 #define ADD_HORA_PROCESSO       0x54  //1 byte
@@ -72,21 +72,22 @@
 //DEFINICOES DOS SENSORES
 #define COMUM       0
 #define CONDENSADOR 1
-#define SENSOR_NTC  2
-#define VACUOMETRO  3
+#define VACUOMETRO  2
+#define SENSOR_NTC  3
+
 
 
 const String DEVICE[MAXDEVICE] = {"COMUM",
                                   "CONDENSADOR",
-                                  "SENSOR_NTC",
-                                  "VACUOMETRO"
+                                  "VACUOMETRO",
+                                  "SENSOR_NTC"
                                  };
 
                            
 const String DEVICEShow[8]={"COMUM...........= ",
-                            "CONDENSADOR.....= ",
-                            "SENSOR_NTC......= ",
+                            "CONDENSADOR.....= ",                            
                             "VACUOMETRO......= ",
+                            "SENSOR_NTC......= ",
                             "NONE............= ",
                             "NONE............= ",
                             "NONE............= ",
