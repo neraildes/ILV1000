@@ -264,6 +264,28 @@ void Shell::prompt(void)
             ObjBlynk.terminalClear();
         }
 
+
+        else if (parametro == "ALL")
+        {
+          parametro = extraiProximoParametro(&buffer, ' ');
+
+          if(parametro=="ON")
+            {
+            flag_comum=true;  
+            flag_condensador=true; 
+            flag_vacuo=true;
+            flag_aquecimento=true;
+            }
+          else if(parametro=="OFF")  
+            {
+            flag_comum=false;  
+            flag_condensador=false; 
+            flag_vacuo=false;
+            flag_aquecimento=false;              
+            }
+            
+        }
+        
         else if (parametro == "BLYNK")
         {
         #ifdef COM_BLYNK_WIFI
@@ -305,7 +327,7 @@ void Shell::prompt(void)
             {
                 uint8_t releNum;
                 uint8_t elevado;
-                //releNum=pow(2,elevado);  
+ 
                 
                 if(parametro=="COMUM")
                   {
@@ -323,11 +345,8 @@ void Shell::prompt(void)
                   {
                   releNum=VACUOMETRO;     
                   }
- 
 
-                elevado=pow(2,releNum); 
-                Serial.println(elevado,BIN);  
-                         
+                elevado=pow2(releNum); 
                           
                 parametro = extraiProximoParametro(&buffer, ' ');
                 //Serial.print("Antes statusgen.value  =");Serial.println(persistente.statusgen.value,BIN);
@@ -368,7 +387,7 @@ void Shell::prompt(void)
           for(uint8_t i=0;i<8;i++)
              { 
              blkPrint(DEVICEShow[i]);
-             extra=pow(2,i);             
+             extra=pow2(i);             
              if((persistente.statusgen.value&extra)!=0)
                blkPrintln(" Ativo");
              else
@@ -603,6 +622,7 @@ void Shell::prompt(void)
                 blkPrintln(" Codes   - Exibe os códigos do teclado");
                 blkPrintln(" Auto    - Inicia ou Abandona um processo (on/off)");
                 blkPrintln(" Blynk   - Exibe se o blink foi compilado");
+                blkPrintln(" All     - Liga <on> ou desliga <off> todos");
                 blkPrintln("--------------------------------------------------");
         }
         else if (parametro == "CODES")

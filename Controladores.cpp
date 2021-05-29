@@ -24,8 +24,9 @@ void Controladores::relayManager(uint8_t device, uint8_t situacao)
 {
     uint8_t auxiliar; 
     //auxiliar=pow(2, device);    
-    auxiliar=1;
-    auxiliar=(auxiliar<<device);
+    //auxiliar=1;
+    //auxiliar=(auxiliar<<device);
+    auxiliar=pow2(device);
 
 
 
@@ -71,7 +72,7 @@ void Controladores::relayManager(uint8_t device, uint8_t situacao)
 bool Controladores::relayStado(uint8_t device){
      bool retorno;
      uint8_t auxiliar;
-     auxiliar=pow(2,device);
+     auxiliar=pow2(device);
 
      auxiliar = auxiliar & ~extra74HC595.chip.value;
      if(auxiliar>0) retorno=true; else retorno=false;

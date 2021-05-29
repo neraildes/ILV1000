@@ -45,7 +45,7 @@ class  Controladores {
                float   tempo_OFF;     //Tempo de relê desligado
                float   temp=0;        //Valor temporário a ser exibido no display
                int8_t  status= NORMAL;//Status que controla a exibição no display (NORMAL/PISCA/DINAMICO)
-               int8_t  estado;       //RELAY_SOBE ou RELAY_DESCE;
+               int8_t  estado;        //RELAY_SOBE ou RELAY_DESCE;
                char  mensagem[10];    //Mensagem principal a ser exibida no display
                char  mensagem1[10];   //Mensagem secundária a ser exibida no display
                //uint8_t modo;          //RELAY_LIGADO_SOBE ou RELAY_LIGADO_DESCE               

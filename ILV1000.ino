@@ -458,12 +458,6 @@ void doProcesso(){
        {
        Serial.print("Gravando Status (Por mudança de estado.)...");
        Serial.println(persistente.statusgen.value, BIN);
-       /*
-       flag_condensador=false;
-       flag_vacuo=false;
-       flag_comum=false;
-       flag_aquecimento=false;
-       */
        persistente.save();
        memoFlags=(persistente.statusgen.value & 0b11100000);
        }
@@ -471,43 +465,77 @@ void doProcesso(){
          
        if(flag_processo_auto)  //INICIOU UM PROCESSO?
          {  
-             flag_condensador=true;      //Liga o condensador
-             if(Relay_Valor_Composto(CONDENSADOR)<Relay_Setagem_Baixa(CONDENSADOR))
+          flag_condensador=true;      //Liga o condensador
+          
+          if(Relay_Valor_Composto(CONDENSADOR)<Relay_Setagem_Baixa(CONDENSADOR))
+             {
+             flag_vacuo=true;
+             if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))             
+               {
+               flag_aquecimento=false;
+               flag_comum=false;
+               }
+             else if(Relay_Valor_Composto(VACUOMETRO)<Relay_Setagem_Baixa(VACUOMETRO))
+               {
+               flag_aquecimento=true;
+               flag_comum=true;
+               }             
+             }
+          else if( Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR) )
+             {
+             flag_vacuo=false; 
+             flag_aquecimento=false;
+             flag_comum=false;
+             }             
+         if(flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
+         if(flag_vacuo)        SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH); else  SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);       
+         if(flag_aquecimento)  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);
+         if(flag_comum)                  SensoresAtuadores[COMUM].relayManager(COMUM,HIGH); else  SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
+         }
+       else          
+         {        
+         if(flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH);else SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);         
+         if(flag_vacuo) SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);   else     SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);            
+         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+         if(flag_aquecimento) 
+            {
+            if(Relay_Valor_Composto(SENSOR_NTC)<Relay_Setagem_Baixa(SENSOR_NTC)) 
+              {
+              SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); 
+              SensoresAtuadores[SENSOR_NTC].estado=RELAY_LIGADO;
+              flag_comum=true;    
+              }
+            else
+            if(Relay_Valor_Composto(SENSOR_NTC)<Relay_SetPoint(SENSOR_NTC))
+              {
+              if(SensoresAtuadores[SENSOR_NTC].estado==RELAY_LIGADO)
                 {
-                flag_vacuo=true;
-                if(Relay_Valor_Composto(VACUOMETRO)<Relay_Setagem_Baixa(VACUOMETRO))        
-                  {
-                    if(Relay_Valor_Composto(SENSOR_NTC)<Relay_Setagem_Baixa(SENSOR_NTC))
-                      {
-                      flag_aquecimento=true;
-                      flag_comum=true;
-                      }
-                    else
-                    if(Relay_Valor_Composto(SENSOR_NTC)>Relay_SetPoint(SENSOR_NTC))
-                      {
-                      flag_aquecimento=false;
-                      flag_comum=false;    
-                      }
-                  }
-                else if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))
-                  {
-                    flag_aquecimento=false;
-                    flag_comum=false; 
-                  }
-                } 
-                
-             else if(Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR))
+                SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);      
+                flag_comum=true;
+                }
+              else
                 {
-                //flag_vacuo=false;
-                flag_aquecimento=false;
-                flag_comum=false; 
-                }                
-         }            
-   
-         if(flag_condensador) SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH);else SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);            
-         if(flag_vacuo)       SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH);  else SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);            
-         if(flag_aquecimento) SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);  else SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);
-         if(flag_comum)       SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);            else SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
+                SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);    
+                flag_comum=false;
+                }
+              }              
+            else 
+            if(Relay_Valor_Composto(SENSOR_NTC)>Relay_SetPoint(SENSOR_NTC)) 
+              {
+              SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);  
+              SensoresAtuadores[SENSOR_NTC].estado=RELAY_DESLIGADO;
+              flag_comum=false;      
+              }
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            }
+         else 
+            {
+            SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);
+            flag_comum=false;
+            }
+            
+         if(flag_comum==true) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH); else SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
+         }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1307,26 +1335,8 @@ void doLerSensor() {
       
        
     }
-    else if (escalona == 2) //Sensor PT100 CONDENSAADOR
-    {        
-        #define B 3975.0 
-        ADCvalue = ADC_Indka.read_pin(34, AD_MEDIO);       //Faz uma m�dia das entradas
-        ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
 
-
-        resistencia = (4095.0 - ADCvalue);
-        resistencia *= (10000.0 - ADCvalue);
-        temperatura = ADCvalue * 10000.0 / resistencia;
-        calc = temperatura;
-        temperatura = log(calc);
-        temperatura /= B;
-        temperatura += 1.0 / (25.0 + 273.15);
-        temperatura = 1.0 / temperatura;
-        temperatura -= 273.15;
-      
-        SensoresAtuadores[escalona].value = temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
-    }
-    else if (escalona == 3) //Sensor de V�cuo
+    else if (escalona == 2) //Sensor de V�cuo
     {
         float vaccum;
         ADCvalue = ADC_Indka.read_pin(35, AD_MEDIO);       //Faz uma m�dia das entradas
@@ -1348,6 +1358,27 @@ void doLerSensor() {
         if (vaccum > 2000.0) vaccum = 2000.0;
 
         SensoresAtuadores[escalona].value = vaccum;
+    }
+
+
+    else if (escalona == 3) //Sensor PT100 CONDENSAADOR
+    {        
+        #define B 3975.0 
+        ADCvalue = ADC_Indka.read_pin(34, AD_MEDIO);       //Faz uma m�dia das entradas
+        ADCvalue = ADC_Indka.suaviza(ADCvalue, escalona);  //Suaviza os dados por tend�ncia
+
+
+        resistencia = (4095.0 - ADCvalue);
+        resistencia *= (10000.0 - ADCvalue);
+        temperatura = ADCvalue * 10000.0 / resistencia;
+        calc = temperatura;
+        temperatura = log(calc);
+        temperatura /= B;
+        temperatura += 1.0 / (25.0 + 273.15);
+        temperatura = 1.0 / temperatura;
+        temperatura -= 273.15;
+      
+        SensoresAtuadores[escalona].value = temperatura;//(3.3 / 4095) * valor;//(((200.0 * valor) / 1024.0) - 110.0) / 10;
     }
 
     escalona++;

@@ -3,13 +3,15 @@
 
 #include <Arduino.h>
 
-//#define COM_BLYNK_WIFI
+#define COM_BLYNK_WIFI
 
 //#define DEBUG;
 
 #define MAXDEVICE 4 //Numero máximo de dispositivos
 
 #define TEMPO_PISCA 111
+
+#define pow2(x) (1<<x)
 
 #define LED_BLINK    1
 
@@ -96,8 +98,8 @@ const String DEVICEShow[8]={"COMUM...........= ",
                             
 const String SUFIXO[4] = { ".",
                           "°C.",
-                          "°C.",
-                          "mmHg."
+                          "mmHg.",
+                          "°C."
 };
 
 //Sistema para auto reestabelecimento
