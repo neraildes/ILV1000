@@ -467,29 +467,54 @@ void doProcesso(){
          {  
           flag_condensador=true;      //Liga o condensador
           
-          if(Relay_Valor_Composto(CONDENSADOR)<Relay_Setagem_Baixa(CONDENSADOR))
-             {
+         if(Relay_Valor_Composto(CONDENSADOR)<Relay_Setagem_Baixa(CONDENSADOR))  
+             {           
              flag_vacuo=true;
-             if(Relay_Valor_Composto(VACUOMETRO)>Relay_SetPoint(VACUOMETRO))             
+             flag_aquecimento=true;
+             SensoresAtuadores[CONDENSADOR].estado=RELAY_LIGADO;
+             }
+         else if( Relay_Valor_Composto(CONDENSADOR)<Relay_SetPoint(CONDENSADOR))  
+             if(SensoresAtuadores[CONDENSADOR].estado==RELAY_LIGADO)
                {
-               flag_aquecimento=false;
-               flag_comum=false;
+               flag_vacuo=true;
                }
-             else if(Relay_Valor_Composto(VACUOMETRO)<Relay_Setagem_Baixa(VACUOMETRO))
+             else
+               {
+               flag_vacuo=false;               
+               }
+         else if( Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR))
+               {
+               flag_vacuo=false;
+               SensoresAtuadores[CONDENSADOR].estado=RELAY_DESLIGADO;
+               }
+
+
+         if(Relay_Valor_Composto(VACUOMETRO)<Relay_Setagem_Baixa(VACUOMETRO))  
+             {           
+             flag_aquecimento=true;
+             SensoresAtuadores[VACUOMETRO].estado=RELAY_LIGADO;
+             }
+         else if( Relay_Valor_Composto(VACUOMETRO)<Relay_SetPoint(VACUOMETRO))  
+             if(SensoresAtuadores[VACUOMETRO].estado==RELAY_LIGADO)
                {
                flag_aquecimento=true;
-               flag_comum=true;
-               }             
-             }
-          else if( Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR) )
-             {
-             flag_vacuo=false; 
-             flag_aquecimento=false;
-             flag_comum=false;
-             }             
+               }
+             else
+               {
+               flag_aquecimento=false;               
+               }
+         else if( Relay_Valor_Composto(CONDENSADOR)>Relay_SetPoint(CONDENSADOR))
+               {
+               flag_aquecimento=false;
+               SensoresAtuadores[VACUOMETRO].estado=RELAY_LIGADO;
+               }
+
+
+
+               
          if(flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR,HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
          if(flag_vacuo)        SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,HIGH); else  SensoresAtuadores[VACUOMETRO].relayManager(VACUOMETRO,  LOW);       
-         if(flag_aquecimento)  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);
+         ControleDinamicoDeTemperatura();//if(flag_aquecimento)  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); else  SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);
          if(flag_comum)                  SensoresAtuadores[COMUM].relayManager(COMUM,HIGH); else  SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
          }
        else          
@@ -499,34 +524,7 @@ void doProcesso(){
          //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          if(flag_aquecimento) 
             {
-            if(Relay_Valor_Composto(SENSOR_NTC)<Relay_Setagem_Baixa(SENSOR_NTC)) 
-              {
-              SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); 
-              SensoresAtuadores[SENSOR_NTC].estado=RELAY_LIGADO;
-              flag_comum=true;    
-              }
-            else
-            if(Relay_Valor_Composto(SENSOR_NTC)<Relay_SetPoint(SENSOR_NTC))
-              {
-              if(SensoresAtuadores[SENSOR_NTC].estado==RELAY_LIGADO)
-                {
-                SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);      
-                flag_comum=true;
-                }
-              else
-                {
-                SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);    
-                flag_comum=false;
-                }
-              }              
-            else 
-            if(Relay_Valor_Composto(SENSOR_NTC)>Relay_SetPoint(SENSOR_NTC)) 
-              {
-              SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);  
-              SensoresAtuadores[SENSOR_NTC].estado=RELAY_DESLIGADO;
-              flag_comum=false;      
-              }
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            ControleDinamicoDeTemperatura();
             }
          else 
             {
@@ -537,6 +535,47 @@ void doProcesso(){
          if(flag_comum==true) SensoresAtuadores[COMUM].relayManager(COMUM,HIGH); else SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
          }
 }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+void ControleDinamicoDeTemperatura()
+{
+     if(flag_aquecimento)
+       {
+        if(Relay_Valor_Composto(SENSOR_NTC)<Relay_Setagem_Baixa(SENSOR_NTC)) 
+          {
+          SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH); 
+          SensoresAtuadores[SENSOR_NTC].estado=RELAY_LIGADO;
+          flag_comum=true;    
+          }
+        else
+        if(Relay_Valor_Composto(SENSOR_NTC)<Relay_SetPoint(SENSOR_NTC))
+          {
+          if(SensoresAtuadores[SENSOR_NTC].estado==RELAY_LIGADO)
+            {
+            SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,HIGH);      
+            flag_comum=true;
+            }
+          else
+            {
+            SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);    
+            flag_comum=false;
+            }
+          }              
+        else 
+        if(Relay_Valor_Composto(SENSOR_NTC)>Relay_SetPoint(SENSOR_NTC)) 
+          {
+          SensoresAtuadores[SENSOR_NTC].relayManager(SENSOR_NTC,LOW);  
+          SensoresAtuadores[SENSOR_NTC].estado=RELAY_DESLIGADO;
+          flag_comum=false;      
+          }
+       }
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+}
+
+
+
+
+
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void doAutoRelay() {
