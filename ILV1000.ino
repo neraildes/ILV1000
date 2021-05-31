@@ -447,7 +447,7 @@ void Gerenciador_de_Tempo() {
 void doGrava10minutos() {
   if (flag_processo_auto == true)
   {
-    Serial.println("Gravando Status (Por tempo 10 minutos)...");
+    comandos.blkPrintln("Gravando Status (Por tempo 10 minutos)...");
     persistente.save();
     delay(1000);
   }
@@ -461,14 +461,14 @@ void doProcesso() {
 
   if (memoFlags != (persistente.statusgen.value & 0b11100000))
   {
-    Serial.print("Gravando Status (Por mudança de estado.)...");
+    comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
     Serial.println(persistente.statusgen.value, BIN);
     persistente.save();
     memoFlags = (persistente.statusgen.value & 0b11100000);
   }
 
 
-  if (flag_processo_auto) //INICIOU UM PROCESSO?
+  if (flag_processo_auto) //INICIOU UM PROCESSO EM MODO AUTOMÁTICO
   {    
      flag_condensador=true;
      flag_vacuo=ControleCondensadorLigaVacuo();
@@ -476,51 +476,79 @@ void doProcesso() {
        {
        if(ControleVacuoLigaAquecimento())
          {
-         //flag_aquecimento=true;
+         flag_aquecimento=true;
          ControleDinamicoDeTemperatura();
-         flag_comum=true; 
+         //flag_comum=true; 
          }
        else
          {
-         //flag_aquecimento=false;
+         flag_aquecimento=false;
          ControleDinamicoDeTemperatura();
-         flag_comum=false; 
+         //flag_comum=false; 
          }
        }
      else
        {
-       //flag_aquecimento=false;
+       flag_aquecimento=false;
        ControleDinamicoDeTemperatura();
-       flag_comum=false; 
+       //flag_comum=false; 
        }         
      if (flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
      if (flag_vacuo)        SensoresAtuadores[VACUO].relayManager(VACUO, HIGH); else  SensoresAtuadores[VACUO].relayManager(VACUO,  LOW);
      //if(flag_aquecimento)  SensoresAtuadores[AQUECIMENTO].relayManager(AQUECIMENTO,HIGH);   else  SensoresAtuadores[AQUECIMENTO].relayManager(AQUECIMENTO,LOW);
      if (flag_comum)                  SensoresAtuadores[COMUM].relayManager(COMUM, HIGH); else  SensoresAtuadores[COMUM].relayManager(COMUM, LOW);         
   }
-  else
+  else  //INICIA PROCESSO EM MODO MANUAL (DIAGNÓSTICO)
   {   
 
+  //--------------------------------------- TESTA SE ESTÁ COM AQUECIMENTO EM MODO DIAGNÓSTICO --------------------------------------------
   if(SensoresAtuadores[AQUECIMENTO].ignore)     
      {
      if (flag_aquecimento) 
         {
         SensoresAtuadores[AQUECIMENTO].relayManager(AQUECIMENTO, HIGH);
-        flag_comum=true;
+        //flag_comum=true;
         }
      else  
         {
         SensoresAtuadores[AQUECIMENTO].relayManager(CONDENSADOR, LOW); //Não respeita o limite de temperatura       
-        flag_comum=false;
+        //flag_comum=false;
         }
      }    
   else
      {
      ControleDinamicoDeTemperatura(); //Respeita os limites de temperatura
      }
-     
-  if (flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);
-  if (flag_vacuo)        SensoresAtuadores[VACUO].relayManager(VACUO, HIGH); else  SensoresAtuadores[VACUO].relayManager(VACUO,  LOW);  
+  //------------------------------------------- TESTA SE ESTÁ COM VÁCUO EM MODO DIAGNÓSTICO -------------------------------------------------------------
+  if (flag_vacuo)
+     {
+     if(SensoresAtuadores[VACUO].ignore)
+       {
+       SensoresAtuadores[VACUO].relayManager(VACUO, HIGH);  
+       }
+     else
+       {
+       if(SensoresAtuadores[CONDENSADOR].value<hardDisk.EEPROMReadFloat(ADD_CONDENSADOR_SET))
+          {
+          SensoresAtuadores[VACUO].relayManager(VACUO, HIGH);     
+          }
+       else
+          {
+          comandos.blkPrintln("");  
+          comandos.blkPrintln("O Sistema de segurança bloqueou");
+          comandos.blkPrintln("o acionamento da bomba de vácuo.");  
+          flag_vacuo=false;  
+          }
+       }
+     }
+  else
+     {
+     SensoresAtuadores[VACUO].relayManager(VACUO,  LOW); 
+     }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  
+  if (flag_condensador)SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, HIGH); else  SensoresAtuadores[CONDENSADOR].relayManager(CONDENSADOR, LOW);   
   if (flag_comum)                  SensoresAtuadores[COMUM].relayManager(COMUM, HIGH); else  SensoresAtuadores[COMUM].relayManager(COMUM, LOW);      
   }
   if(flag_aquecimento) flag_comum=true; else flag_comum=false;

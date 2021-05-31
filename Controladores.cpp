@@ -28,13 +28,6 @@ void Controladores::relayManager(uint8_t device, uint8_t situacao)
     //auxiliar=(auxiliar<<device);
     auxiliar=pow2(device);
 
-
-
-    //Serial.println();
-    //Serial.println(DEVICE[device]);
-    //Serial.println(tempoCNT[device]);
-  
-
     if(situacao==HIGH) //Ligado
       {
         if(tempoCNT[device]==0)
@@ -43,7 +36,7 @@ void Controladores::relayManager(uint8_t device, uint8_t situacao)
             {
               tempoCNT[device]= hardDisk.EEPROMReadFloat(20 * device + 0x0C);
               if(SensoresAtuadores[device].tempo_ON!=0)
-                 {
+                 {                  
                  auxiliar=~auxiliar;
                  extra74HC595.chip.value &= auxiliar; //LIGAR RELÊ
                  }
