@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define COM_BLYNK_WIFI
+//#define COM_BLYNK_WIFI
 
 //#define DEBUG;
 
@@ -41,11 +41,11 @@
 #define ADD_CONDENSADOR_ATIVO   0x20
 #define ADD_CONDENSADOR_INATIVO 0x24
 
-#define ADD_VACUOMETRO_SET      0X28  //4 bytes
-#define ADD_VACUOMETRO_HIS      0X2C  //4 bytes
-#define ADD_VACUOMETRO_OFF      0X30  //4 bytes
-#define ADD_VACUOMETRO_ATIVO    0x34
-#define ADD_VACUOMETRO_INATIVO  0x38
+#define ADD_VACUO_SET      0X28  //4 bytes
+#define ADD_VACUO_HIS      0X2C  //4 bytes
+#define ADD_VACUO_OFF      0X30  //4 bytes
+#define ADD_VACUO_ATIVO    0x34
+#define ADD_VACUO_INATIVO  0x38
 
 #define ADD_NTC_SET             0X3C  //4 bytes
 #define ADD_NTC_HIS             0X40  //4 bytes
@@ -74,22 +74,22 @@
 //DEFINICOES DOS SENSORES
 #define COMUM       0
 #define CONDENSADOR 1
-#define VACUOMETRO  2
-#define SENSOR_NTC  3
+#define VACUO       2
+#define AQUECIMENTO 3
 
 
 
 const String DEVICE[MAXDEVICE] = {"COMUM",
                                   "CONDENSADOR",
-                                  "VACUOMETRO",
-                                  "SENSOR_NTC"
+                                  "VACUO",
+                                  "AQUECIMENTO"
                                  };
 
                            
 const String DEVICEShow[8]={"COMUM...........= ",
                             "CONDENSADOR.....= ",                            
-                            "VACUOMETRO......= ",
-                            "SENSOR_NTC......= ",
+                            "VACUO...........= ",
+                            "AQUECIMENTO.....= ",
                             "NONE............= ",
                             "NONE............= ",
                             "NONE............= ",
@@ -132,8 +132,8 @@ const String SUFIXO[4] = { ".",
 
 #define CODE_CONDENSADOR_ON       20
 #define CODE_CONDENSADOR_OFF      21
-#define CODE_VACCUM_ON            22
-#define CODE_VACCUM_OFF           23
+#define CODE_VACUO_ON             22
+#define CODE_VACUO_OFF            23
 #define CODE_AQUECIMENTO_ON       24
 #define CODE_AQUECIMENTO_OFF      25
 #define CODE_DATALOG_ON           26

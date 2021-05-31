@@ -22,8 +22,8 @@ void Sobressalente74HC595::chipSetValue(uint8_t pin, uint8_t estado) {
 	case PIN_SENSORNTC:
 	   relay_ntc = estado;
 		 break;
-	case PIN_VACCUM:
-		 relay_vaccum = estado;
+	case PIN_VACUO:
+		 relay_vacuo = estado;
 		 break;
 	case PIN_COMUM:
 		 relay_comum = (uint8_t)estado;

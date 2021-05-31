@@ -9,7 +9,7 @@
 #define PIN_COMUM       0
 #define PIN_CONDENSADOR 1
 #define PIN_SENSORNTC   2
-#define PIN_VACCUM      3
+#define PIN_VACUO       3
 #define PIN_DATALOG     4
 #define PIN_BUZZER      5
 #define PIN_RESERVED6   6
@@ -25,7 +25,7 @@ typedef union
         unsigned relay_comum       : 1;        
         unsigned relay_condensador : 1;
         unsigned relay_aquecimento : 1;  //Fix Inverter no Hardware condensador e aquecimento        
-        unsigned relay_vaccum      : 1;
+        unsigned relay_vacuo      : 1;
         unsigned relay_datalog     : 1; 
         unsigned relay_buzzer      : 1;
         unsigned reserved5         : 1;
@@ -48,7 +48,7 @@ private:
 #define relay_comum        extra74HC595.chip.relay_comum
 #define relay_condensador  extra74HC595.chip.relay_condensador
 #define relay_aquecimento  extra74HC595.chip.relay_aquecimento
-#define relay_vaccum       extra74HC595.chip.relay_vaccum
+#define relay_vacuo       extra74HC595.chip.relay_vacuo
 #define relay_datalog      extra74HC595.chip.relay_datalog
 #define relay_buzzer       extra74HC595.chip.relay_buzzer
 

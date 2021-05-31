@@ -311,7 +311,14 @@ void Shell::prompt(void)
         }
         else if (parametro == "RELAY")
         {
+            bool flag_ignore=false;
             parametro = extraiProximoParametro(&buffer, ' ');
+            if(parametro=="/I")
+              {
+              flag_ignore=true;
+              parametro = extraiProximoParametro(&buffer, ' ');  
+              }
+              
             
             if (parametro == "")
             {
@@ -319,8 +326,8 @@ void Shell::prompt(void)
                 blkPrintln("Use:");
                 blkPrintln("relay <comum/");
                 blkPrintln("       condensador/");
-                blkPrintln("       ntc/");
-                blkPrintln("       vaccum/");
+                blkPrintln("       aquecimento/");
+                blkPrintln("       vacuo/");
                 blkPrintln("       <on / off>");
             }            
             else 
@@ -339,11 +346,11 @@ void Shell::prompt(void)
                   }
                 else if(parametro=="NTC")
                   {
-                  releNum=SENSOR_NTC;     
+                  releNum=AQUECIMENTO;     
                   }
-                else if(parametro=="VACCUM")
+                else if(parametro=="VACUO")
                   {
-                  releNum=VACUOMETRO;     
+                  releNum=VACUO;     
                   }
 
                 elevado=pow2(releNum); 
@@ -352,15 +359,16 @@ void Shell::prompt(void)
                 //Serial.print("Antes statusgen.value  =");Serial.println(persistente.statusgen.value,BIN);
                 if (parametro == "ON")
                 {                    
-                    persistente.statusgen.value |= elevado;
+                    persistente.statusgen.value |= elevado;                    
                 }
                 else if (parametro == "OFF")
                 {
                     persistente.statusgen.value &= ~elevado;
-                }
-                Serial.print("depois statusgen.value =");Serial.println(persistente.statusgen.value,BIN);
-                Serial.print("Chip 74HC595    =");Serial.println(extra74HC595.chip.value,BIN);
-               
+                }                
+                SensoresAtuadores[releNum].ignore=flag_ignore;
+                //Serial.print("depois statusgen.value =");Serial.println(persistente.statusgen.value,BIN);
+                //Serial.print("Chip 74HC595    =");Serial.println(extra74HC595.chip.value,BIN);
+                if(flag_ignore) blkPrintln("Ignorando limites de parametros."); //else blkPrintln("Respeitando Limites de parametros.");
             }            
         }
         else if (parametro=="AUTO")
@@ -403,10 +411,7 @@ void Shell::prompt(void)
                 blkPrintln("----------------------------------------");
                 blkPrintln("Devices /ALL - Exibe todos os sensores.");
                 blkPrintln("Devices Disponíveis:");
-                for (uint8_t i = 0; i < MAXDEVICE; i++)
-                {
-                    blkPrint(i, 0); blkPrint("........"); blkPrintln(DEVICE[i]);
-                }
+                for (uint8_t i = 0; i < MAXDEVICE; i++) blkPrintln(DEVICE[i]);
                 blkPrintln("/S    - Exibe ou altera o SetPoint.");
                 blkPrintln("/H    - Exibe ou altera a Histerese.");
                 blkPrintln("/O    - Exibe ou altera o OffSet.");
@@ -607,7 +612,7 @@ void Shell::prompt(void)
         }
         else if (parametro=="HELP")
         {
-                blkPrintln("--------------------------------------------------");
+                blkPrintln("---------------------------------------------");
                 blkPrintln("Digite os seguintes comandos:");
                 blkPrintln(" Cls     - Limpa a tela.");
                 blkPrintln(" Help    - Exibe esta ajuda.");
@@ -618,12 +623,12 @@ void Shell::prompt(void)
                 blkPrintln(" Devices - Exibe dispositivos disponíveis.");
                 blkPrintln(" Thread  - Habilita / Desabilita Thread.");
                 blkPrintln(" Relay   - Ativa / Desativa relê.");
-                blkPrintln(" Status  - Exibe o status dos reles");
+                blkPrintln(" Status  - Exibe o status dos reles.");
                 blkPrintln(" Codes   - Exibe os códigos do teclado");
-                blkPrintln(" Auto    - Inicia ou Abandona um processo (on/off)");
-                blkPrintln(" Blynk   - Exibe se o blink foi compilado");
-                blkPrintln(" All     - Liga <on> ou desliga <off> todos");
-                blkPrintln("--------------------------------------------------");
+                blkPrintln(" Auto    - Inicia ou Abandona um processo.");
+                blkPrintln(" Blynk   - Exibe se o blink foi compilado.");
+                blkPrintln(" All     - Liga <on> ou desliga <off> todos.");
+                blkPrintln("---------------------------------------------");
         }
         else if (parametro == "CODES")
         {
