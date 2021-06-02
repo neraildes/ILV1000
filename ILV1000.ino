@@ -6,11 +6,11 @@
   Plataforma : ARDUINO
   Placa   : ESP32 VRROM D1 WEMOS
   Device  : ESP32 DEV Module##
-  Observa��es:
-    Este projeto utiliza um teclado de membrana e displays 74hc595
-    Utiliza-se tamb�m de terminal para alterar e visualizar parametros.
-    A configura��o do terminal deve ser:
-        O terminal pode ser qualquer um, por�m este foi testado no Putty.
+  Observacoes:
+    Este projeto utiliza um teclado de membrana e displays 74hc595 + 2 chips sobressalentes
+    Utiliza-se também de terminal para alterar e visualizar parametros.
+    A configuração do terminal deve ser:
+        O terminal pode ser qualquer um, porém este foi testado no Putty.
         Baud Rate: 115200.
         BackSpace: ControlH
         Controle de fluxo: None (nenhum)
@@ -36,7 +36,6 @@
 #include "key.h"
 #include "Eeprom_Indka.h"
 #include "Sobressalente74HC595.h"
-//#include <stdlib.h>
 #include "AD_Converter.h"
 #include "Persistente.h"
 #include "Controladores.h"
@@ -44,11 +43,6 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-//#include <esp_ipc.h>
-
-#include "EmonLib.h"             // Include Emon Library
-EnergyMonitor emon1;             // Create an instance
-
 
 char versao[] = FVERSION ;
 
@@ -58,7 +52,7 @@ Sobressalente74HC595 extra74HC595;
 
 Persistente persistente;
 
-//variaveis que indicam o n�cleo
+//variaveis que indicam o núcleo a ser utilizado
 static uint8_t taskCoreZero = 0;
 static uint8_t taskCoreOne  = 1;
 
@@ -111,8 +105,6 @@ ThreadController controller_1 = ThreadController(); //Threads que rodarão no n�
 
 uint16_t buzzer = 0;
 
-uint8_t minutoProcesso = 0;
-uint8_t horaProcesso = 0;
 uint16_t tempoCNT[MAXDEVICE];
 
 char tecla_pressionada = 0;
@@ -163,11 +155,6 @@ bool ControleVacuoLigaAquecimento();
 bool ControleCondensadorLigaVacuo(); 
   
 
-
-
-
-
-
 // The setup() function runs once each time the micro-controller starts
 void setup()
 {
@@ -197,10 +184,6 @@ void setup()
   comandos.blkPrintln("Aguarde, conectando...");
   exibeRevisao();
   comandos.blkPrintln("Pronto!");
-
-
-
-
   //--------------------------------------------------
 
 
@@ -211,9 +194,6 @@ void setup()
   thDisplay.setInterval(0);
 
   controller_0.add(&thDisplay);  //Displays de sete segmentos
-
-
-
 
 
 
@@ -240,11 +220,9 @@ void setup()
   //-------------------------------Métodos ligados a processo------------------------------------------
   thProcesso.onRun(doProcesso);
   thProcesso.setInterval(350);
-  //thProcesso.enabled=false;
 
   thGrava10minutos.onRun(doGrava10minutos);
   thGrava10minutos.setInterval(1000 * 60 * 10); //Grava após 10 minutos
-  thGrava10minutos.enabled = false;
 
   thAutoRelay.onRun(doAutoRelay);
   thAutoRelay.setInterval(400);
@@ -299,20 +277,6 @@ void setup()
 
 
   buzzer = 100;
-  /*
-    flag_processo_auto=false;
-    flag_condensador=false;      //OK
-    flag_aquecimento=false;      //OK
-    flag_vacuo=false;            //OK
-    flag_comum=false ;
-    while(1){
-
-     if(flag_comum)
-        SensoresAtuadores[COMUM].relayManager(COMUM,HIGH);
-     else
-        SensoresAtuadores[COMUM].relayManager(COMUM,LOW);
-    }
-  */
 
 }
 
@@ -425,16 +389,14 @@ void Gerenciador_de_Tempo() {
   {
     segundo = 0;
     minuto++;
+    if(flag_processo_auto) persistente.processoTime.minuto++;
     if (minuto >= 60)
     {
       minuto = 0;
-      minutoProcesso++;
+      if(flag_processo_auto) persistente.processoTime.minuto=0;
+      
       hora++;
-      if (hora >= 24)
-      {
-        hora++;
-        horaProcesso++;
-      }
+      if(flag_processo_auto) persistente.processoTime.hora++;
     }
 
   }
@@ -445,11 +407,12 @@ void Gerenciador_de_Tempo() {
 
 //------------------------------------------------------------------------
 void doGrava10minutos() {
-  if (flag_processo_auto == true)
+  if (flag_processo_auto)
   {
     comandos.blkPrintln("Gravando Status (Por tempo 10 minutos)...");
     persistente.save();
-    delay(1000);
+    //buzzer=1000;
+    delay(1000);    
   }
 }
 
@@ -783,50 +746,33 @@ bool ControleNTCLigaAquecimento()
 
     for (counter = MAXDEVICE - 1; counter > -1; counter--)
     {
-      if ((funcao == FUNCAO_SETPOINT) || (funcao == FUNCAO_HISTERESE))
-      {
+      //-----------------------------------------------------------------------------------------------------
+      if (funcao == FUNCAO_CODIGO)
+      {         
         if (SensoresAtuadores[counter].status == DINAMICO)
         {
-          if (tempoDecorrido > 0)
-          {
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, DINAMICO);
-          }
-          else
-          {
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].temp, PISCA);
-          }
+           if (tempoDecorrido > 0)
+           {             
+             seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, DINAMICO);
+           }
+           else
+           {
+             seteSegmentos.sendDisplay(SensoresAtuadores[counter].temp, PISCA);
+           }
         }
         else if (SensoresAtuadores[counter].status == NORMAL)
         {
-          seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
+          if(counter==0)
+            seteSegmentos.sendDisplay(SensoresAtuadores[counter].hora, NORMAL);
+          else  
+            seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
         }
         else if (SensoresAtuadores[counter].status == PISCA)
         {
           seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), PISCA);
         }
       }
-      else if (funcao == FUNCAO_CODIGO)
-      {
-        if (SensoresAtuadores[counter].status == DINAMICO)
-        {
-          if (tempoDecorrido > 0)
-          {
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, DINAMICO);
-          }
-          else
-          {
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].temp, PISCA);
-          }
-        }
-        else if (SensoresAtuadores[counter].status == NORMAL)
-        {
-          seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
-        }
-        else if (SensoresAtuadores[counter].status == PISCA)
-        {
-          seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), PISCA);
-        }
-      }
+      //------------------------------------------------------------------------------------------------------------
       else if (funcao == FUNCAO_SHOWMESSAGE)
       {
         if (SensoresAtuadores[counter].status == DINAMICO)
@@ -839,11 +785,17 @@ bool ControleNTCLigaAquecimento()
               seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, NORMAL);
           }
           else
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
+            if (counter == 0)
+                seteSegmentos.sendDisplay(SensoresAtuadores[counter].hora, NORMAL);          
+            else    
+                seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
         }
         else
         {
-          seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
+          if (counter == 0)
+              seteSegmentos.sendDisplay(SensoresAtuadores[counter].hora, NORMAL);                    
+          else    
+              seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
         }
       }
       else if (funcao == FUNCAO_NONE)
@@ -862,7 +814,7 @@ bool ControleNTCLigaAquecimento()
         else
         {
           if (counter == 0)
-            seteSegmentos.sendDisplay(SensoresAtuadores[counter].mensagem, NORMAL);
+            seteSegmentos.sendDisplay(SensoresAtuadores[counter].hora, NORMAL);
           else
             seteSegmentos.sendDisplay(SensoresAtuadores[counter].valorDeLeitura(COMPOSTO), NORMAL);
         }
@@ -899,16 +851,8 @@ bool ControleNTCLigaAquecimento()
   void executaTarefa(uint32_t codigo, float parametro) {
     //codigo /= 1000;
     parametro /= 1000.0;
-    if (displayNumero == 0)
-    {
-      comandos.blkPrintln("Entrou em display = 0");
-      funcao = FUNCAO_NONE;
-      tempoDecorrido = 0;
-      autorestore = 0;
-      SensoresAtuadores[displayNumero].status = NORMAL;
-      return;
-    }
-    else if (codigo == CODE_OFFSET_SETAR) //1
+
+    if (codigo == CODE_OFFSET_SETAR) //1
     {
       comandos.blkPrintln("Voce setou o offset em "); comandos.blkPrint(parametro);
       SensoresAtuadores[displayNumero].offset = parametro;
@@ -1080,7 +1024,14 @@ bool ControleNTCLigaAquecimento()
       funcao = FUNCAO_SHOWMESSAGE;
     }
     else if (codigo == CODE_LIOFILIZAR_AUTO_ON) //100
-    {
+    { 
+      milisegundo=0;
+      segundo=0;
+      minuto=0;
+      hora=0;
+      persistente.processoTime.hora=0;
+      persistente.processoTime.minuto=0;
+      persistente.save();
       comandos.blkPrintln("Voce ligou o modo automático do Liofilizador");
       tempoDecorrido = 3000;
       flag_processo_auto = true;
@@ -1109,6 +1060,7 @@ bool ControleNTCLigaAquecimento()
       comandos.blkPrintln("Codigo invalido!");
     }
 
+    
 
   }
 
@@ -1178,15 +1130,18 @@ bool ControleNTCLigaAquecimento()
   //====================================================================================
   //Code do Sistema
   void Pressionou_a_Tecla_C() {
-    comandos.blkPrintln("Modo de digitação de Código");
-    comandos.blkPrintln("Se não souber o código, digite");
-    comandos.blkPrintln("no prompt de comandos 'CODES'.");
+    if(funcaoMemo!=FUNCAO_CODIGO)
+      { 
+      comandos.blkPrintln("Modo de digitação de Código");
+      comandos.blkPrintln("Se não souber o código, digite");
+      comandos.blkPrintln("no prompt de comandos 'CODES'.");
+      }
     funcao = FUNCAO_CODIGO;
     decimal = 0.01;
     for (int8_t i = 0; i < MAXDEVICE; i++)
     {
       SensoresAtuadores[i].status = NORMAL;
-      strcpy(SensoresAtuadores[i].mensagem, "CODE");
+      //strcpy(SensoresAtuadores[i].mensagem, "CODE");
       SensoresAtuadores[i].temp = 0;
     }
     if (funcaoMemo == FUNCAO_CODIGO)
@@ -1195,10 +1150,11 @@ bool ControleNTCLigaAquecimento()
       flag_zerar = true;
     }
     funcaoMemo = FUNCAO_CODIGO;
-
+    //bookmark
     enterDoKeypad = 0;
-
-    if (displayNumero != 0)SensoresAtuadores[displayNumero].status = DINAMICO;
+    
+    SensoresAtuadores[displayNumero].status = DINAMICO;
+    strcpy(SensoresAtuadores[displayNumero].mensagem, "CODE");
 
     tempoDecorrido = 3000;
   }
@@ -1257,6 +1213,7 @@ bool ControleNTCLigaAquecimento()
 
   void Pressionou_Tecla_Sharp()
   {
+    /*
     if (funcao == FUNCAO_SETPOINT)
     {
       SensoresAtuadores[displayNumero].setpoint = SensoresAtuadores[displayNumero].temp;
@@ -1271,7 +1228,7 @@ bool ControleNTCLigaAquecimento()
       hardDisk.EEPROMWriteFloat((20 * displayNumero + 4), SensoresAtuadores[displayNumero].histerese);
       funcao = FUNCAO_NONE;
     }
-    else if (funcao == FUNCAO_CODIGO)
+    else*/ if (funcao == FUNCAO_CODIGO)
     {
       static float codigo;
       static float parametro;
@@ -1443,26 +1400,42 @@ bool ControleNTCLigaAquecimento()
     {
       String tempo;
       char   tempoChar[10];
-      if (hora < 10)
+      if (persistente.processoTime.hora < 10)
       {
         strcpy(tempoChar, "0");
-        tempo = String(hora, HEX);
+        tempo = String(persistente.processoTime.hora, HEX);
         tempoChar[1] = tempo[0];
       }
       else
       {
         strcpy(tempoChar, "");
-        tempo = String(hora, DEC);
+        tempo = String(persistente.processoTime.hora, DEC);
         tempoChar[0] = tempo[0];
         tempoChar[1] = tempo[1];
       }
-      tempo = String(minuto / 100.0, DEC);
+      tempo = String(persistente.processoTime.minuto / 100.0, DEC);
       tempoChar[2] = tempo[1];
       tempoChar[3] = tempo[2];
       tempoChar[4] = tempo[3];
       tempoChar[5] = 0;
 
-      strcpy(SensoresAtuadores[escalona].mensagem, tempoChar);
+
+      strcpy(SensoresAtuadores[escalona].hora, tempoChar);
+      /*
+      //bookmark0
+      if ((funcao==FUNCAO_CODIGO))
+         {
+         if(displayNumero!=0)
+           {
+           strcpy(SensoresAtuadores[escalona].mensagem, tempoChar);   
+           }
+         }            
+      else      
+         {
+         strcpy(SensoresAtuadores[escalona].mensagem, tempoChar);
+         }
+      */   
+              
     }
     else if (escalona == 1) // Sensor de NTC
     {

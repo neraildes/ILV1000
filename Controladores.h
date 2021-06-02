@@ -47,9 +47,10 @@ class  Controladores {
                int8_t  status= NORMAL;//Status que controla a exibição no display (NORMAL/PISCA/DINAMICO)
                int8_t  estado;        //RELAY_SOBE ou RELAY_DESCE;
                char  mensagem[10];    //Mensagem principal a ser exibida no display
-               char  mensagem1[10];   //Mensagem secundária a ser exibida no display              
+               char  mensagem1[10];   //Mensagem secundária a ser exibida no display 
+               char  hora[10];        //Hora do sistema            
                float valorDeLeitura(uint8_t tipo); //Metodo que retorna o valor lido SIMPLES ou COMPOSTO.
-               bool  ignore=true;    //Ignora valores dependentes deste sensor.
+               bool  ignore=true;     //Ignora valores dependentes deste sensor.              
                void relayManager(uint8_t device, uint8_t situacao);
                bool relayStado(uint8_t device);
                void Relay_Power(uint8_t device, bool state);

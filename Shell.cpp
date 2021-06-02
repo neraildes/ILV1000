@@ -107,7 +107,17 @@ void Shell::mostraTempo(void)
          if (segundo < 10) blkPrint("0");
          blkPrint(segundo,0);         
          blkPrintln("");
+         
          blkPrint("Tempo de processo: ");
+         if (persistente.processoTime.hora < 10) blkPrint("0");
+         blkPrint(persistente.processoTime.hora,0);
+         blkPrint(":");
+         if (persistente.processoTime.minuto < 10) blkPrint("0");
+         blkPrint(persistente.processoTime.minuto,0);
+         blkPrint(":");
+         if (segundo < 10) blkPrint("0");
+         blkPrint(segundo,0);         
+         blkPrintln("");         
          flag_hora = false;
          }
      }
@@ -376,6 +386,13 @@ void Shell::prompt(void)
           parametro = extraiProximoParametro(&buffer, ' ');
           if(parametro=="ON")
             {
+             milisegundo=0;
+             segundo=0;
+             minuto=0;
+             hora=0;
+             persistente.processoTime.hora=0;
+             persistente.processoTime.minuto=0;
+             persistente.save();              
              flag_processo_auto=true;
             }
           else if (parametro=="OFF")  
