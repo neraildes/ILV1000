@@ -474,7 +474,7 @@ void doProcesso() {
         }
      else  
         {
-        SensoresAtuadores[AQUECIMENTO].relayManager(CONDENSADOR, LOW); //Não respeita o limite de temperatura       
+        SensoresAtuadores[AQUECIMENTO].relayManager(AQUECIMENTO, LOW); //Não respeita o limite de temperatura       
         //flag_comum=false;
         }
      }    
