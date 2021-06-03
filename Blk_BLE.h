@@ -1,7 +1,7 @@
 
 
-#ifndef _BLK_BT_H
-#define _BLK_BT_H
+#ifndef _BLK_BLE_H
+#define _BLK_BLE_H
 
 #if defined(ARDUINO) && ARDUINO >= 100
   #include "arduino.h"
@@ -9,11 +9,8 @@
   #include "WProgram.h"
 #endif
 
-class Blk_BT_Class
+class Blk_BLE_Class
 {
- protected:
-
-
  public:
   void init();
   void terminalClear();
@@ -21,6 +18,7 @@ class Blk_BT_Class
   void print(String text);
   void run();
   void showData();
+ protected:
 };
 
 #endif

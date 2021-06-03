@@ -127,7 +127,7 @@ Thread thShell;
 Thread thKeypad;
 Thread thLerSensor;
 Thread thBlynkRun;
-Thread thBlynkExibe;
+//Thread thBlynkExibe;
 Thread thDisplay;
 Thread thRTC;
 
@@ -139,7 +139,7 @@ void coreTaskOne(void* pvParameters);
 void doKeypad();
 void doLerSensor();
 void doDisplay(void);
-void doBlynkExibe();
+//void doBlynkExibe();
 void doGrava10minutos();
 void doRTC();
 void doBlynkRun();
@@ -202,14 +202,14 @@ void setup()
   thKeypad.setInterval(16);
 
   thBlynkRun.onRun(doBlynkRun);
-  thBlynkRun.setInterval(2);
+  thBlynkRun.setInterval(0);
 
 
   thLerSensor.onRun(doLerSensor);
   thLerSensor.setInterval(500);
 
-  thBlynkExibe.onRun(doBlynkExibe);
-  thBlynkExibe.setInterval(1000);
+  //thBlynkExibe.onRun(doBlynkExibe);
+  //thBlynkExibe.setInterval(1000);
 
   thShell.onRun(doShell);
   thShell.setInterval(15);
@@ -231,7 +231,7 @@ void setup()
   controller_1.add(&thBlynkRun);
   controller_1.add(&thAutoRelay);
   controller_1.add(&thLerSensor);
-  controller_1.add(&thBlynkExibe);
+  //controller_1.add(&thBlynkExibe);
   controller_1.add(&thKeypad);   //Teclado de membrana
   controller_1.add(&thShell);    //Terminal Putty
   controller_1.add(&thRTC);      //RTC
@@ -1502,28 +1502,22 @@ bool ControleNTCLigaAquecimento()
   }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  bool flag_connected = false;
-  void doBlynkRun() {
-    //Blynk.run();
-  }
+    bool flag_connected = false;
+    void doBlynkRun() {
+         comandos.blynkRun();
+    }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  void doBlynkExibe() {
-#ifdef COM_BLYNK_WIFI
-    comandos.exibeDados();
-#endif
-  }
-
-
-  //thBlynk.onRun(doBlynk);
-  //thBlynk.setInterval(500);
+//  void doBlynkExibe() {
+//#ifdef COM_BLYNK_WIFI
+//    comandos.exibeDados();
+//#endif
+//  }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   void doDisplay(void) {
     Exibe_Display();
   }
-
-
 
   //=====================================================================
   //++++++++++++++++++++++

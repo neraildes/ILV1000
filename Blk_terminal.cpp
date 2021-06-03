@@ -1,28 +1,18 @@
 #include "Controladores.h"
+#include "global.h"
+
+#ifdef COM_BLYNK_WIFI
 #include "Blk_terminal.h"
-#include "Global.h"
-
-
-//Comment this out to disable prints and save space
 #define BLYNK_PRINT Serial
-
 #include "WiFi.h"
 #include "WiFiClient.h"
 #include "BlynkSimpleEsp32.h"
-
-
 char auth[] = "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh";
 char ssid[] = "Nera";
 char pass[] = "iub950962";
-
-extern Controladores SensoresAtuadores[MAXDEVICE];
-
-
-// Attach virtual serial terminal to Virtual Pin V1
 WidgetTerminal terminal(V10);
 
-
-
+extern Controladores SensoresAtuadores[MAXDEVICE];
 
 void Blk_terminalClass::init()
 {
@@ -46,20 +36,6 @@ void Blk_terminalClass::print(String text) {
 
 void Blk_terminalClass::run() {
 	 Blynk.run();
-}
-
-void Blk_terminalClass::output() {
-    /*
-    static uint8_t escalona = 0;
-    
-    switch (escalona++)
-    {
-    case 0:Blynk.virtualWrite(V0, SensoresAtuadores[0].valorDeLeitura(COMPOSTO)); break;
-    case 1:Blynk.virtualWrite(V1, SensoresAtuadores[1].valorDeLeitura(COMPOSTO)); break;
-    case 2:Blynk.virtualWrite(V2, SensoresAtuadores[2].valorDeLeitura(COMPOSTO)); break;
-    case 3: escalona = 0; break;
-    } 
-    */
 }
 
 
@@ -97,3 +73,5 @@ void Blk_terminalClass::output() {
  {
      Blynk.virtualWrite(V3, SensoresAtuadores[3].valorDeLeitura(COMPOSTO));
  }
+
+#endif

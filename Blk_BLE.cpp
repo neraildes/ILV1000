@@ -1,47 +1,42 @@
-#include "Blk_BT.h"
+#include "Controladores.h"
+#include "global.h"
+
+#ifdef COM_BLYNK_BLE
+#include "Blk_BLE.h"
 #define BLYNK_PRINT Serial
 #define BLYNK_USE_DIRECT_CONNECT
 #include <BlynkSimpleEsp32_BLE.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
-#include "Controladores.h"
-#include "global.h"
-
 char auth[] = "Lq7xXgIvMAK1heKtLH4fJ-s2iS6bfPp-";
-
-
-
-extern Controladores SensoresAtuadores[MAXDEVICE];
-
-
 //Attach virtual serial terminal to Virtual Pin V1
 WidgetTerminal terminal(V10);
 
 
+extern Controladores SensoresAtuadores[MAXDEVICE];
 
-
-void Blk_BT_Class::init()
+void Blk_BLE_Class::init()
 {
-  Blynk.setDeviceName("AAABBB"); 
+  Blynk.setDeviceName("TV_NERA"); 
   Blynk.begin(auth);
 }
 
-void Blk_BT_Class::terminalClear() {
+void Blk_BLE_Class::terminalClear() {
      terminal.clear();
 }
 
-void Blk_BT_Class::println(String text) {
+void Blk_BLE_Class::println(String text) {
      terminal.println(text);
      terminal.flush();
 }
 
-void Blk_BT_Class::print(String text) {
+void Blk_BLE_Class::print(String text) {
      terminal.print(text);
      terminal.flush();
 }
 
 
-void Blk_BT_Class::run() {
+void Blk_BLE_Class::run() {
    Blynk.run();
 }
 
@@ -58,7 +53,7 @@ void Blk_BT_Class::run() {
  }
  
  
-Blk_BT_Class Blk_terminal;
+Blk_BLE_Class Blk_terminal;
 
 
  BLYNK_READ(V0)
@@ -80,3 +75,5 @@ Blk_BT_Class Blk_terminal;
  {
      Blynk.virtualWrite(V3, SensoresAtuadores[3].valorDeLeitura(COMPOSTO));
  }
+
+#endif

@@ -10,7 +10,8 @@ class Shell{
       Shell();
       void init();
       void prompt();
-      void empresa();      
+      void empresa();  
+      void blynkRun();    
       void mostraTempo(); 
       void HelpHandlerThread();
       void blkPrintln(String text);

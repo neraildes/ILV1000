@@ -5,12 +5,16 @@
 #include "Thread.h"
 #include "ThreadController.h"
 #include "Modulo595.h"
-#include "Blk_terminal.h"
 #include "Sobressalente74HC595.h"
 #include "Controladores.h"
 #include "Persistente.h"
 #include "versao.h"
-
+#ifdef COM_BLYNK_WIFI
+#include "Blk_terminal.h"
+#endif
+#ifdef COM_BLYNK_BLE
+#include "Blk_BLE.h"
+#endif
 
 extern uint8_t  hora;
 extern uint8_t  minuto;
@@ -20,7 +24,7 @@ extern uint16_t milisegundo;
 extern Thread thBlynkRun;
 extern Thread thAutoRelay;
 extern Thread thLerSensor;
-extern Thread thBlynkExibe;
+//extern Thread thBlynkExibe;
 extern Thread thDisplay;
 extern Thread thKeypad;
 extern Thread thShell;
@@ -56,15 +60,23 @@ Shell::Shell(void)
 
   }
 
-
+ #ifdef COM_BLYNK_WIFI
 Blk_terminalClass ObjBlynk;
-void Shell::init(){
-     #ifdef COM_BLYNK_WIFI
-     ObjBlynk.init();     
-     #endif 
+void Shell::init(){    
+     ObjBlynk.init();          
 }
+#endif 
 
+#ifdef COM_BLYNK_BLE
+Blk_BLE_Class ObjBlynk;
+void Shell::init(){    
+     ObjBlynk.init();          
+}
+#endif 
 
+void Shell::blynkRun(){
+     ObjBlynk.run();
+}
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void Shell::empresa()
@@ -144,12 +156,7 @@ void Shell::prompt(void)
     static uint8_t index = 0;
 
     //Relógio em tempo real
-    if (a == 0 && flag_hora) mostraTempo();
-
-    #ifdef COM_BLYNK_WIFI
-    ObjBlynk.run();
-    #endif
-    
+    if (a == 0 && flag_hora) mostraTempo();   
 
     if ((Serial.available()) || (flag_brx==true))
     {
@@ -271,7 +278,10 @@ void Shell::prompt(void)
         if (parametro == "CLS")
         {
             Serial.write(12);
+            #ifdef COM_BLYNK_WIFI
             ObjBlynk.terminalClear();
+            #endif
+            
         }
 
 
@@ -461,7 +471,7 @@ void Shell::prompt(void)
             {
             case 0: thPoint = &thAutoRelay; break;
             case 1: thPoint = &thLerSensor; break;
-            case 2: thPoint = &thBlynkExibe; break;
+            //case 2: thPoint = &thBlynkExibe; break;
             case 3: thPoint = &thDisplay; break;
             case 4: thPoint = &thKeypad; break;
             case 5: thPoint = &thShell; break;
@@ -764,9 +774,9 @@ void Shell::prompt(void)
      blkPrintln(texto);
  }
 
- void Shell::exibeDados(){
-     ObjBlynk.output();
- }
+ //void Shell::exibeDados(){
+ //    ObjBlynk.output();
+// }
 
  String Shell::extraiProximoParametro(String *buffer, char caracter) {
         String parametro;

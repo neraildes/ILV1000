@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-//#define COM_BLYNK_WIFI
+#define COM_BLYNK_WIFI
+//#define COM_BLYNK_BLE
 
 //#define DEBUG;
 
