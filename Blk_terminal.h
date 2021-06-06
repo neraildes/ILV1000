@@ -27,4 +27,3 @@ class Blk_terminalClass
 extern Blk_terminalClass Blk_terminal;
 
 #endif
-

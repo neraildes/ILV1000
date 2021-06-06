@@ -122,7 +122,7 @@ extern String bufferBlynk;
 
 Thread thGrava10minutos;
 Thread thProcesso;
-Thread thAutoRelay;
+//Thread thAutoRelay;
 Thread thShell;
 Thread thKeypad;
 Thread thLerSensor;
@@ -145,7 +145,7 @@ void doRTC();
 void doBlynkRun();
 void doShell();
 void doProcesso();
-void doAutoRelay();
+//void doAutoRelay();
 void exibeRevisao();
 void debugFlags();
 void loadDefaultFactory();
@@ -156,9 +156,11 @@ bool ControleCondensadorLigaVacuo();
   
 
 // The setup() function runs once each time the micro-controller starts
+
 void setup()
 {
   Serial.begin(115200);
+  //esp_wifi_set_max_tx_power(0);
   pinMode(LED_BLINK, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
   pinMode(2, OUTPUT);
@@ -195,14 +197,12 @@ void setup()
 
   controller_0.add(&thDisplay);  //Displays de sete segmentos
 
-
-
   //====================== THREADS PARA O NUCLEO 1 ===========================
   thKeypad.onRun(doKeypad);
   thKeypad.setInterval(16);
 
   thBlynkRun.onRun(doBlynkRun);
-  thBlynkRun.setInterval(0);
+  thBlynkRun.setInterval(2);
 
 
   thLerSensor.onRun(doLerSensor);
@@ -224,18 +224,18 @@ void setup()
   thGrava10minutos.onRun(doGrava10minutos);
   thGrava10minutos.setInterval(1000 * 60 * 10); //Grava após 10 minutos
 
-  thAutoRelay.onRun(doAutoRelay);
-  thAutoRelay.setInterval(400);
-  thAutoRelay.enabled = false;
+  //thAutoRelay.onRun(doAutoRelay);
+  //thAutoRelay.setInterval(400);
+  //thAutoRelay.enabled = false;
   //----------------------------------------------------------------------------------------------------
   controller_1.add(&thBlynkRun);
-  controller_1.add(&thAutoRelay);
+  //controller_1.add(&thAutoRelay);
   controller_1.add(&thLerSensor);
   //controller_1.add(&thBlynkExibe);
   controller_1.add(&thKeypad);   //Teclado de membrana
-  controller_1.add(&thShell);    //Terminal Putty
-  controller_1.add(&thRTC);      //RTC
+  controller_1.add(&thShell);    //Terminal Putty  
   controller_1.add(&thProcesso); //Execução de Processo
+  controller_1.add(&thRTC);      //RTC
   controller_1.add(&thGrava10minutos);
   //==========================================================================
 
@@ -275,9 +275,11 @@ void setup()
     NULL,       /* refer�ncia para a tarefa (pode ser NULL) */
     taskCoreOne);         /* N�cleo que executar� a tarefa */
 
-
+  
   buzzer = 100;
 
+
+  
 }
 
 
@@ -299,10 +301,10 @@ void setup()
 
 
 
-
+uint8_t  faznada=0;
 void loop()
 {
-  //controller_1.run();
+  faznada++;
 }
 
 
@@ -315,10 +317,9 @@ void coreTaskZero(void* pvParameters) {
   String taskMessage = "Task running on core ";
   taskMessage = taskMessage + xPortGetCoreID();
   //Serial.println(taskMessage);  //log para o serial monitor
-
   while (true) {
     controller_0.run();
-    delay(4);
+    delay(1);
   }
 }
 
@@ -376,12 +377,28 @@ void SaidaAutomatica(uint8_t acao)
 
 
 //oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-//RTC do Sistema
+//RTC do Sistema (Interrpção de 1 segundo)
 uint8_t  hora = 0;
 uint8_t  minuto = 0;
 uint8_t  segundo = 0;
 uint16_t milisegundo = 0;
 void Gerenciador_de_Tempo() {
+  for (uint8_t i = 0; i < MAXDEVICE; i++) if (tempoCNT[i] > 0) tempoCNT[i]--;
+  if(flag_processo_auto)
+    {      
+    persistente.processoTime.segundo++;  
+    if(persistente.processoTime.segundo>=60)
+      {    
+        persistente.processoTime.segundo=0;
+        persistente.processoTime.minuto++;
+        if(persistente.processoTime.minuto>=60)
+           {
+           persistente.processoTime.minuto=0;    
+           persistente.processoTime.hora++;
+           }
+        } 
+      }
+        
   milisegundo = 0;
   segundo++;
   SaidaAutomatica(MONITORA);
@@ -389,14 +406,10 @@ void Gerenciador_de_Tempo() {
   {
     segundo = 0;
     minuto++;
-    if(flag_processo_auto) persistente.processoTime.minuto++;
     if (minuto >= 60)
     {
-      minuto = 0;
-      if(flag_processo_auto) persistente.processoTime.minuto=0;
-      
-      hora++;
-      if(flag_processo_auto) persistente.processoTime.hora++;
+      minuto = 0;      
+      hora++;      
     }
 
   }
@@ -409,10 +422,9 @@ void Gerenciador_de_Tempo() {
 void doGrava10minutos() {
   if (flag_processo_auto)
   {
-    comandos.blkPrintln("Gravando Status (Por tempo 10 minutos)...");
+    //comandos.blkPrintln("Gravando Status (Por tempo 10 minutos)...");
     persistente.save();
-    //buzzer=1000;
-    delay(1000);    
+    delay(500);    
   }
 }
 
@@ -424,8 +436,8 @@ void doProcesso() {
 
   if (memoFlags != (persistente.statusgen.value & 0b11100000))
   {
-    comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
-    Serial.println(persistente.statusgen.value, BIN);
+    //comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
+    //Serial.println(persistente.statusgen.value, BIN);
     persistente.save();
     memoFlags = (persistente.statusgen.value & 0b11100000);
   }
@@ -641,47 +653,6 @@ bool ControleNTCLigaAquecimento()
 
 
 
-  //--------------------------------------------------------------------------------------------------------------------------------------------------------------
-  void doAutoRelay() {
-    static uint8_t escalona = 1;
-    /*
-      if (Relay_Status(escalona) == RELAY_ESTADO_ATIVO)
-      {
-        //================ CONTROLE DE TEMPO DO RELE 0 =================
-        if (Relay_Valor_Composto(escalona) <= Relay_Setagem_Baixa(escalona))
-        {
-            if (Relay_Modo(escalona) == RELAY_AQUECER)
-            {
-                Relay_Status(escalona) = RELAY_SOBE;
-                Relay_Power(escalona, HIGH);
-            }
-            else
-                if (Relay_Modo(escalona) == RELAY_REFRIGERAR)
-                {
-                    Relay_Status(escalona) = RELAY_DESCE;
-                    Relay_Power(escalona, LOW);
-                }
-        }
-        else if (Relay_Valor_Composto(escalona) > Relay_Setagem_Alta(escalona))
-        {
-            if (Relay_Modo(escalona) == RELAY_AQUECER)
-            {
-                Relay_Status(escalona) = RELAY_DESCE;
-                Relay_Power(escalona, LOW);
-            }
-            else
-                if (Relay_Modo(escalona) == RELAY_REFRIGERAR)
-                {
-                    Relay_Status(escalona) = RELAY_SOBE;
-                    Relay_Power(escalona, HIGH);
-                }
-        }
-      }
-    */
-    escalona++;
-    if (escalona >= MAXDEVICE) escalona = 0;
-  }
-
 
   //========================================================================
   void doShell() {
@@ -889,7 +860,7 @@ bool ControleNTCLigaAquecimento()
 
     else if (codigo == CODE_TEMPO_ON_SETAR) //5
     {
-      comandos.blkPrintln("Voce setou tempo do rele ligado em "); comandos.blkPrint(parametro);
+      comandos.blkPrintln("Voce setou tempo do rele ligado em "); comandos.blkPrint(parametro,0); comandos.blkPrintln(" segundos.");
       strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_ON = parametro;
       tempoCNT[displayNumero] = parametro;
@@ -909,7 +880,7 @@ bool ControleNTCLigaAquecimento()
 
     else if (codigo == CODE_TEMPO_OFF_SETAR) //7
     {
-      comandos.blkPrintln("Voce setou tempo do rele desligado em "); comandos.blkPrint(parametro);
+      comandos.blkPrintln("Voce setou tempo do rele desligado em "); comandos.blkPrint(parametro);comandos.blkPrintln(" segundos.");
       strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_OFF = parametro;
       tempoCNT[displayNumero] = parametro;
@@ -1525,8 +1496,6 @@ bool ControleNTCLigaAquecimento()
   void doRTC() {
     milisegundo++;
 
-    for (uint8_t i = 0; i < MAXDEVICE; i++) if (tempoCNT[i] > 0) tempoCNT[i]--;
-
     if (tempoDecorrido > 0) tempoDecorrido--;
     if (buzzer > 0)
     {
@@ -1596,39 +1565,42 @@ bool ControleNTCLigaAquecimento()
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_SET,     0.0);  //SetPoint
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_HIS,     1.0);  //Histerese Volts
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_OFF,     0.0);  //OFF Set Volts
-    hardDisk.EEPROMWriteFloat(ADD_HORARIO_ATIVO,  1000);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_HORARIO_ATIVO,  10.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_INATIVO, 0.0);  //Tempo OFF
 
     //-----------------CONDENSADOR----------------------------
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_SET,   -15.0);  //SetPoint Condensador
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_HIS,     5.0);  //Histerese Condensador
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_OFF,     0.0);  //Off set condensador
-    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_ATIVO,  1000);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_ATIVO,  10.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_INATIVO, 0.0);  //Tempo OFF
 
     //---------------------VACUO-------------------------
     hardDisk.EEPROMWriteFloat(ADD_VACUO_SET, 1300.0);     //SetPoint VACUO
     hardDisk.EEPROMWriteFloat(ADD_VACUO_HIS, 200.0);      //Histerese VACUO
     hardDisk.EEPROMWriteFloat(ADD_VACUO_OFF, 0.0);        //Off Set VACUO
-    hardDisk.EEPROMWriteFloat(ADD_VACUO_ATIVO,  1000.0);     //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_VACUO_ATIVO,    10.0);     //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_VACUO_INATIVO,   0.0);   //Tempo OFF
 
     //--------------------NTC---------------------------------
     hardDisk.EEPROMWriteFloat(ADD_NTC_SET,     35.0);  //SetPoint NTC
     hardDisk.EEPROMWriteFloat(ADD_NTC_HIS,      1.0);  //Histerese NTC
     hardDisk.EEPROMWriteFloat(ADD_NTC_OFF,      0.0);  //Off set NTC
-    hardDisk.EEPROMWriteFloat(ADD_NTC_ATIVO,   10000.0);  //Tempo ON
-    hardDisk.EEPROMWriteFloat(ADD_NTC_INATIVO, 20000.0);  //Tempo OFF
+    hardDisk.EEPROMWriteFloat(ADD_NTC_ATIVO,   10.0);  //Tempo ON
+    hardDisk.EEPROMWriteFloat(ADD_NTC_INATIVO, 20.0);  //Tempo OFF
 
 
 
     loadDefaultUser();
 
     persistente.statusgen.value = 0b00000000;
+    persistente.processoTime.hora=0;
+    persistente.processoTime.minuto=0;
+    persistente.processoTime.segundo=0;
     persistente.save();
 
     funcao = FUNCAO_NONE;
-    Serial.println("Valores padrao de fabrica carregados!");
+    comandos.blkPrintln("Valores padrao de fabrica carregados!");
   }
 
 

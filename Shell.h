@@ -21,6 +21,7 @@ class Shell{
       void blkPrint(double num, uint8_t decimal);
       void blkPrintln(double num, uint8_t decimal);
       void exibeDados();
+      void maxPowerTxWifi();
       String extraiProximoParametro(String* buffer, char caracter);
   private:
 

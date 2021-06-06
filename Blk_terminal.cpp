@@ -7,6 +7,20 @@
 #include "WiFi.h"
 #include "WiFiClient.h"
 #include "BlynkSimpleEsp32.h"
+
+#include  <stdint.h> 
+#include  <stdbool.h> 
+#include  "freertos/FreeRTOS.h" 
+#include  "freertos/queue.h" 
+#include  "rom/queue.h" 
+#include  "sdkconfig.h" 
+#include  "esp_err.h" 
+#include  "esp_wifi_types.h" 
+#include  "esp_wifi_crypto_types.h" 
+#include  "esp_event.h" 
+
+
+
 char auth[] = "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh";
 char ssid[] = "Nera";
 char pass[] = "iub950962";
@@ -37,7 +51,6 @@ void Blk_terminalClass::print(String text) {
 void Blk_terminalClass::run() {
 	 Blynk.run();
 }
-
 
 
 // You can send commands from Terminal to your hardware. Just use

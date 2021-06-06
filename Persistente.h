@@ -27,6 +27,7 @@ typedef union
 typedef struct{
   uint8_t hora;
   uint8_t minuto;
+  uint8_t segundo;
 } processoTime_t;
 
 class Persistente{

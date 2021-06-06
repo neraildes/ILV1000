@@ -17,7 +17,7 @@ extern Controladores SensoresAtuadores[MAXDEVICE];
 
 void Blk_BLE_Class::init()
 {
-  Blynk.setDeviceName("TV_NERA"); 
+  Blynk.setDeviceName("JJ210600"); 
   Blynk.begin(auth);
 }
 
