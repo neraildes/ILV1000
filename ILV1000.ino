@@ -41,8 +41,15 @@
 #include "Controladores.h"
 #include "versao.h"
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+/*
+//Bibliotecas
+#include <HTTPClient.h>
+#include <DNSServer.h> 
+#include <WebServer.h>
+#include <WiFiManager.h>
+
+extern WiFiManager wifiManager;//Objeto de manipulação do wi-fi
+*/
 
 char versao[] = FVERSION ;
 
@@ -71,6 +78,9 @@ int RCLK = 16 ; //Lath
 String blynkDisplay[MAXDEVICE];
 Eeprom_Indka hardDisk = Eeprom_Indka();
 Modulo595 seteSegmentos(DIO, SCLK, RCLK);
+
+
+
 
 
 Shell comandos;
@@ -150,6 +160,7 @@ void exibeRevisao();
 void debugFlags();
 void loadDefaultFactory();
 void loadDefaultUser();
+void ControleDinamicoDeTemperatura();
 bool ControleNTCLigaAquecimento(); 
 bool ControleVacuoLigaAquecimento(); 
 bool ControleCondensadorLigaVacuo(); 
@@ -278,6 +289,17 @@ void setup()
   
   buzzer = 100;
 
+  
+  //callback para quando entra em modo de configuração AP
+  //wifiManager.setAPCallback(configModeCallback); 
+  //callback para quando se conecta em uma rede, ou seja, quando passa a trabalhar em modo estação
+  //wifiManager.setSaveConfigCallback(saveConfigCallback); 
+  comandos.setAPCallback();
+  comandos.setSaveConfigCallback();
+
+
+
+  
 
   
 }
@@ -854,10 +876,7 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0);
       comandos.blkPrintln("Voce esta visualizando o SetPoint");
     }
-
-
-
-
+    
     else if (codigo == CODE_TEMPO_ON_SETAR) //5
     {
       comandos.blkPrintln("Voce setou tempo do rele ligado em "); comandos.blkPrint(parametro,0); comandos.blkPrintln(" segundos.");
@@ -875,9 +894,7 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C);
       comandos.blkPrintln("Voce esta visualizando o Tempo Ligado do Rele.");
     }
-
-
-
+    
     else if (codigo == CODE_TEMPO_OFF_SETAR) //7
     {
       comandos.blkPrintln("Voce setou tempo do rele desligado em "); comandos.blkPrint(parametro);comandos.blkPrintln(" segundos.");
@@ -895,14 +912,6 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10);
       comandos.blkPrintln("Voce esta visualizando o Tempo Desligado do Rele.");
     }
-
-
-
-
-
-
-
-
 
     else if (codigo == CODE_HISTERESE_SETAR) //9
     {
@@ -1021,6 +1030,9 @@ bool ControleNTCLigaAquecimento()
     {
       loadDefaultFactory();
     }
+    else if (codigo == CODE_SETWIFI){
+       comandos.connecting();
+    }    
     else if (codigo == CODE_NULL)
     {
       funcao = FUNCAO_SHOWMESSAGE;
@@ -1031,13 +1043,14 @@ bool ControleNTCLigaAquecimento()
       comandos.blkPrintln("Codigo invalido!");
     }
 
-    
-
-  }
 
 
 
-  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+}
+   
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   void FormaNumero(float * number) {
     float temp;
     if (flag_zerar)
@@ -1257,6 +1270,9 @@ bool ControleNTCLigaAquecimento()
           case CODE_TEMPO_OFF_VIEW:
             strcpy(texto, "TOFF");
             break;
+          case CODE_SETWIFI:  
+            strcpy(texto, "REDE");
+            break;          
           default:
             codigo = CODE_NULL;
             strcpy(texto, "CODE");
@@ -1289,6 +1305,7 @@ bool ControleNTCLigaAquecimento()
           case CODE_LIOFILIZAR_AUTO_OFF:
           case CODE_TEMPO_ON_VIEW:
           case CODE_TEMPO_OFF_VIEW:
+          case CODE_SETWIFI:
             executaTarefa(codigo, 0);
             flag_zerar = true; //Zera variável de quantidade de entradas;
             break;

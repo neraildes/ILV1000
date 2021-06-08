@@ -8,6 +8,8 @@
 
 //#define DEBUG;
 
+#define MYNULL ((void*)0)
+
 #define MAXDEVICE 4 //Numero máximo de dispositivos
 
 #define TEMPO_PISCA 111
@@ -143,7 +145,7 @@ const String SUFIXO[4] = { ".",
 #define CODE_LIOFILIZAR_AUTO_ON  100
 #define CODE_LIOFILIZAR_AUTO_OFF 101
 #define CODE_DEFAULT_FACTORE     145
-
+#define CODE_SETWIFI             200
 
 
 

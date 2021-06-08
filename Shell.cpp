@@ -30,7 +30,7 @@ extern Thread thKeypad;
 extern Thread thShell;
 extern Thread thRTC;
 
-//extern hw_timer_t* timer;
+//WiFiManager wifiManager;//Objeto de manipulação do wi-fi
 
 extern Controladores SensoresAtuadores[MAXDEVICE];
 
@@ -783,4 +783,17 @@ String Shell::extraiProximoParametro(String *buffer, char caracter) {
   parametro = buffer->substring(0, posicao);
   buffer->remove(0, posicao + 1);
   return parametro;
+}
+
+
+void Shell::connecting(){
+     ObjBlynk.connecting();
+}
+
+void Shell::setAPCallback(){
+     ObjBlynk.s1();
+}
+
+void Shell::setSaveConfigCallback(){
+     ObjBlynk.s2();
 }

@@ -23,6 +23,9 @@ class Shell{
       void exibeDados();
       void maxPowerTxWifi();
       String extraiProximoParametro(String* buffer, char caracter);
+      void setAPCallback();
+      void setSaveConfigCallback();
+      void connecting();
   private:
 
 };

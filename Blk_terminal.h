@@ -9,11 +9,14 @@
 	#include "WProgram.h"
 #endif
 
+#include <HTTPClient.h>
+#include <DNSServer.h> 
+#include <WebServer.h>
+#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
+
 class Blk_terminalClass
 {
  protected:
-
-
  public:
 	void init();
 	void terminalClear();
@@ -22,6 +25,11 @@ class Blk_terminalClass
 	void run();
 	void output();
 	void showData();
+  void connecting();
+  void configModeCallback (WiFiManager *myWiFiManager);
+  void saveConfigCallback();  
+  void s1();
+  void s2();
 };
 
 extern Blk_terminalClass Blk_terminal;
