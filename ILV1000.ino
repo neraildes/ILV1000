@@ -41,6 +41,8 @@
 #include "Controladores.h"
 #include "versao.h"
 
+#include "singleton.h"
+
 /*
 //Bibliotecas
 #include <HTTPClient.h>
@@ -171,6 +173,16 @@ bool ControleCondensadorLigaVacuo();
 void setup()
 {
   Serial.begin(115200);
+
+  while(1){
+    
+    Singleton &singleton = Singleton::getInstance(); 
+    delay(1000);
+  }
+
+
+
+  
   //esp_wifi_set_max_tx_power(0);
   pinMode(LED_BLINK, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
@@ -1352,6 +1364,7 @@ bool ControleNTCLigaAquecimento()
     tecla_pressionada = meuteclado.getKey();
     if (tecla_pressionada)
     {
+      tempoDecorrido=0; //Anula a mensagem e passa a apresentar digitos.
       SaidaAutomatica(SETA); //Define desist�ncia de edi��o
       buzzer = TIME_BUZZER; //Define aviso sonoro.
       switch (tecla_pressionada)

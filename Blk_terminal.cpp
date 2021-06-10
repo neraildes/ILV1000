@@ -12,7 +12,7 @@
 #include "BlynkSimpleEsp32.h"
 
 char auth[] = "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh";
-char ssid[] = "Nera";
+char ssid[] = "Indka";
 char pass[] = "iub950962";
 WidgetTerminal terminal(V10);
 
@@ -24,7 +24,7 @@ extern Controladores SensoresAtuadores[MAXDEVICE];
 
 void Blk_terminalClass::init()
 {
-  Blynk.begin(auth, ssid, pass); 
+     Blynk.begin(auth, ssid, pass); 
 }
 
 void Blk_terminalClass::terminalClear() {
@@ -84,7 +84,8 @@ void Blk_terminalClass::run() {
 
 
 void Blk_terminalClass::connecting(){
- 
+    
+    
       Serial.println("Abertura Portal"); //Abre o portal
       digitalWrite(26,HIGH); //Acende LED Vermelho
       digitalWrite(32,LOW);
@@ -96,9 +97,9 @@ void Blk_terminalClass::connecting(){
       }
       else{       //Se caso conectar 
         Serial.println("Conectado na Rede!!!");
-        ESP.restart(); //Reinicia ESP após conseguir conexão na rede 
+        ESP.restart(); //Reinicia ESP após conseguir conexão na rede        
       }
-   
+
  
    if(WiFi.status()== WL_CONNECTED){ //Se conectado na rede
       digitalWrite(32,HIGH); //Acende LED AZUL
