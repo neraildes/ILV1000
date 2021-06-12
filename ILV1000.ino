@@ -41,25 +41,22 @@
 #include "Controladores.h"
 #include "versao.h"
 
-#include "singleton.h"
+#include "processo.h"
 
-/*
-//Bibliotecas
-#include <HTTPClient.h>
-#include <DNSServer.h> 
-#include <WebServer.h>
-#include <WiFiManager.h>
-
-extern WiFiManager wifiManager;//Objeto de manipulação do wi-fi
-*/
 
 char versao[] = FVERSION ;
+
+extern Processo &processo;
+
+extern WiFiManager wifiManager;//Objeto de manipulação do wi-fi
 
 extern bool flag_multicore;
 
 Sobressalente74HC595 extra74HC595;
 
 Persistente persistente;
+
+
 
 //variaveis que indicam o núcleo a ser utilizado
 static uint8_t taskCoreZero = 0;
@@ -128,7 +125,7 @@ uint8_t funcao = FUNCAO_NONE;
 uint8_t funcaoMemo = FUNCAO_NONE;
 int8_t autorestore = -1;
 
-extern bool flag_brx;
+extern bool flag_brx;  
 extern String bufferBlynk;
 
 
@@ -174,15 +171,6 @@ void setup()
 {
   Serial.begin(115200);
 
-  while(1){
-    
-    Singleton &singleton = Singleton::getInstance(); 
-    delay(1000);
-  }
-
-
-
-  
   //esp_wifi_set_max_tx_power(0);
   pinMode(LED_BLINK, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
@@ -193,9 +181,7 @@ void setup()
   pinMode(36, INPUT);
 
   seteSegmentos.clearDisplay();
-  extra74HC595.init();
-  comandos.init();
-
+  extra74HC595.init();  
   EEPROM.begin(1024);
   analogReadResolution(12);
   //--------------------------------------------------
@@ -204,11 +190,10 @@ void setup()
   //--------------------------------------------------
   for (uint8_t i = 0; i < MAXDEVICE; i++) doLerSensor();
 
-
+  processo.init();  //Conecta com a Internet
   comandos.empresa();
-  comandos.blkPrintln("Aguarde, conectando...");
+  processo.println("Aguarde, conectando...");
   exibeRevisao();
-  comandos.blkPrintln("Pronto!");
   //--------------------------------------------------
 
 
@@ -301,17 +286,6 @@ void setup()
   
   buzzer = 100;
 
-  
-  //callback para quando entra em modo de configuração AP
-  //wifiManager.setAPCallback(configModeCallback); 
-  //callback para quando se conecta em uma rede, ou seja, quando passa a trabalhar em modo estação
-  //wifiManager.setSaveConfigCallback(saveConfigCallback); 
-  comandos.setAPCallback();
-  comandos.setSaveConfigCallback();
-
-
-
-  
 
   
 }
@@ -456,7 +430,6 @@ void Gerenciador_de_Tempo() {
 void doGrava10minutos() {
   if (flag_processo_auto)
   {
-    //comandos.blkPrintln("Gravando Status (Por tempo 10 minutos)...");
     persistente.save();
     delay(500);    
   }
@@ -467,15 +440,15 @@ uint8_t memoFlags; //fix deve ser inicializado em setup
 void doProcesso() {
 
   //Salva estado da liofilização
-
   if (memoFlags != (persistente.statusgen.value & 0b11100000))
   {
-    //comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
-    //Serial.println(persistente.statusgen.value, BIN);
+    comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
+    Serial.println(persistente.statusgen.value, BIN);
     persistente.save();
     memoFlags = (persistente.statusgen.value & 0b11100000);
+    delay(1000);
   }
-
+  
 
   if (flag_processo_auto) //INICIOU UM PROCESSO EM MODO AUTOMÁTICO
   {    
@@ -1043,7 +1016,7 @@ bool ControleNTCLigaAquecimento()
       loadDefaultFactory();
     }
     else if (codigo == CODE_SETWIFI){
-       comandos.connecting();
+       processo.connecting(); 
     }    
     else if (codigo == CODE_NULL)
     {
@@ -1505,15 +1478,8 @@ bool ControleNTCLigaAquecimento()
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     bool flag_connected = false;
     void doBlynkRun() {
-         comandos.blynkRun();
+         processo.run(); 
     }
-
-  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//  void doBlynkExibe() {
-//#ifdef COM_BLYNK_WIFI
-//    comandos.exibeDados();
-//#endif
-//  }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   void doDisplay(void) {

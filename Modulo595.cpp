@@ -4,7 +4,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "Sobressalente74HC595.h"
-#include "Blk_terminal.h"
+//#include "Blk_terminal.h"
 
 
 extern Sobressalente74HC595 extra74HC595;

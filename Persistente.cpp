@@ -19,8 +19,8 @@ void Persistente::init(){
      memoFlags = statusgen.value;      
 }
 
-void Persistente::save(){
-  EEPROM.write(ADD_STATUSGEN, statusgen.value);
+void Persistente::save(){  
+  EEPROM.write(ADD_STATUSGEN,(statusgen.value & 0b11100000));
   EEPROM.write(ADD_HORA_PROCESSO, processoTime.hora);
   EEPROM.write(ADD_MINUTO_PROCESSO, processoTime.minuto);
   EEPROM.commit();

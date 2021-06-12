@@ -9,12 +9,15 @@
 #include "Controladores.h"
 #include "Persistente.h"
 #include "versao.h"
+#include "processo.h"
+/*
 #ifdef COM_BLYNK_WIFI
 #include "Blk_terminal.h"
 #endif
 #ifdef COM_BLYNK_BLE
 #include "Blk_BLE.h"
 #endif
+*/
 
 extern uint8_t  hora;
 extern uint8_t  minuto;
@@ -30,7 +33,9 @@ extern Thread thKeypad;
 extern Thread thShell;
 extern Thread thRTC;
 
-//WiFiManager wifiManager;//Objeto de manipulação do wi-fi
+extern WiFiManager wifiManager;//Objeto de manipulação do wi-fi
+
+Processo &processo = Processo::getInstance();
 
 extern Controladores SensoresAtuadores[MAXDEVICE];
 
@@ -60,6 +65,7 @@ Shell::Shell(void)
 
 }
 
+/*
 #ifdef COM_BLYNK_WIFI
 Blk_terminalClass ObjBlynk;
 void Shell::init() {
@@ -77,7 +83,7 @@ void Shell::init() {
 void Shell::blynkRun() {
   ObjBlynk.run();
 }
-
+*/
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void Shell::empresa()
 {
@@ -93,7 +99,7 @@ void Shell::empresa()
   blkPrintln("       INDÚSTRIA DE KITS PARA AUTOMAÇÃO");
   blkPrintln("             Projetos e Engenharia ");
   blkPrintln("                      de ");
-  blkPrintln("              Hardwaare e Software");
+  blkPrintln("              Hardware e Software");
   blkPrintln("              Ribeirão Preto - SP");
   blkPrintln("                www.indka.com.br");
   blkPrintln("                (16) 99600-9172");
@@ -146,7 +152,7 @@ char c = 0;
 
 char *texto;
 uint16_t valor;
-extern bool flag_brx;
+extern bool flag_brx; 
 extern String bufferBlynk;
 String  doskey[10];
 uint8_t doskeyIndex = 0;
@@ -240,11 +246,13 @@ void Shell::prompt(void)
 
 
   //+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+  
   if (flag_brx) {
     flag_brx = false;
     buffer = bufferBlynk;
     a = 13;  //Parametro primeiro do vácuo composto por a,b,c.
   }
+  
   //+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
   buffer.toUpperCase();                       //Descobre sobre quem está tratando para
   for (uint8_t i = 0; i < MAXDEVICE; i++)     //poder lidar com ele genericamente
@@ -278,13 +286,12 @@ void Shell::prompt(void)
     if (parametro == "CLS")
     {
       Serial.write(12);
-#ifdef COM_BLYNK_WIFI
-      ObjBlynk.terminalClear();
-#endif
-
+      processo.terminalClear();
     }
-
-
+    else if (parametro == "SETWIFI")
+    {
+      processo.connecting(); 
+    }
     else if (parametro == "ALL")
     {
       parametro = extraiProximoParametro(&buffer, ' ');
@@ -330,6 +337,7 @@ void Shell::prompt(void)
       }
 
     }
+
     else if (parametro == "RELAY")
     {
       bool flag_ignore = false;
@@ -537,8 +545,8 @@ void Shell::prompt(void)
         blkPrint("OffSet    = "); blkPrint(Relay_OffSet(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
         blkPrint("Superior  = "); blkPrint(Relay_Setagem_Alta(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
         blkPrint("Inferior  = "); blkPrint(Relay_Setagem_Baixa(displayNumero), 2); blkPrintln(SUFIXO[displayNumero]);
-        blkPrint("Tempo ON  = "); blkPrint(Relay_Tempo_ON(displayNumero), 0); blkPrintln(" segundos.");
-        blkPrint("Tempo OFF = "); blkPrint(Relay_Tempo_OFF(displayNumero), 0); blkPrintln(" segundos.");
+        blkPrint("Tempo ON  = "); blkPrint(Relay_Tempo_ON(displayNumero), 0); blkPrintln(" segundo(s).");
+        blkPrint("Tempo OFF = "); blkPrint(Relay_Tempo_OFF(displayNumero), 0); blkPrintln(" segundo(s).");
         blkPrintln("-------------------------------------");
 
       }
@@ -596,13 +604,13 @@ void Shell::prompt(void)
         parametro = extraiProximoParametro(&buffer, ' ');
         if (parametro == "")
         {
-          blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C), 1);
-          blkPrintln(SUFIXO[displayNumero]);
+          blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C), 0);
+          blkPrintln(" segundo(s).");
         }
         else
         {
           SensoresAtuadores[displayNumero].tempo_ON = parametro.toFloat();
-          blkPrint("Ajustando Tempo ON para "); blkPrint(SensoresAtuadores[displayNumero].tempo_ON, 0); blkPrintln("segundo(s).");
+          blkPrint("Ajustando Tempo ON para "); blkPrint(SensoresAtuadores[displayNumero].tempo_ON, 0); blkPrintln(" segundo(s).");
           hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x0C, parametro.toFloat());
         }
       }
@@ -613,13 +621,13 @@ void Shell::prompt(void)
         parametro = extraiProximoParametro(&buffer, ' ');
         if (parametro == "")
         {
-          blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10), 1);
-          blkPrintln(SUFIXO[displayNumero]);
+          blkPrint(hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10), 0);
+          blkPrintln(" segundo(s).");
         }
         else
         {
           SensoresAtuadores[displayNumero].tempo_OFF = parametro.toFloat();
-          blkPrint("Ajustando Tempo OFF para "); blkPrint(SensoresAtuadores[displayNumero].tempo_OFF, 0); blkPrintln("segundo(s).");
+          blkPrint("Ajustando Tempo OFF para "); blkPrint(SensoresAtuadores[displayNumero].tempo_OFF, 0); blkPrintln(" segundo(s).");
           hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro.toFloat());
         }
       }
@@ -628,7 +636,7 @@ void Shell::prompt(void)
 
 
 
-
+   
 
     }
     else if ((parametro == DEVICE[displayNumero]) && (buffer == ""))
@@ -653,6 +661,7 @@ void Shell::prompt(void)
       blkPrintln(" Auto    - Inicia ou Abandona um processo.");
       blkPrintln(" Blynk   - Exibe se o blink foi compilado.");
       blkPrintln(" All     - Liga <on> ou desliga <off> todos.");
+      blkPrintln(" SetWifi - Configura a conexão Wifi.");
       blkPrintln("---------------------------------------------");
     }
     else if (parametro == "CODES")
@@ -683,6 +692,7 @@ void Shell::prompt(void)
       blkPrintln("Ativar modo Automático..100");
       blkPrintln("Ativar modo Manual......101");
       blkPrintln("Carregar valores padrão.145");
+      blkPrintln("Modo configura WiFi.....200");
       blkPrintln("---------------------------");
     }
     else if (parametro == "EMPRESA")
@@ -730,13 +740,13 @@ void Shell::HelpHandlerThread() {
 
 void Shell::blkPrint(String text) {
   Serial.print(text);
-  ObjBlynk.print(text);
+  processo.print(text);
 }
 
 
 void Shell::blkPrintln(String text) {
   Serial.println(text);
-  ObjBlynk.println(text);
+  processo.println(text);
 }
 
 void Shell::blkPrint(double num) {
@@ -785,7 +795,7 @@ String Shell::extraiProximoParametro(String *buffer, char caracter) {
   return parametro;
 }
 
-
+/*
 void Shell::connecting(){
      ObjBlynk.connecting();
 }
@@ -797,3 +807,4 @@ void Shell::setAPCallback(){
 void Shell::setSaveConfigCallback(){
      ObjBlynk.s2();
 }
+*/

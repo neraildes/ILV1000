@@ -12,7 +12,7 @@ typedef union
         unsigned flag_aquecimento   : 1;
         unsigned flag_datalog       : 1;        
         unsigned reserved6          : 1;                        
-        unsigned reserved7          : 1;   
+        unsigned flag_com_internet  : 1;   
         unsigned flag_processo_auto : 1; 
     };
 }statusgen_t;
@@ -22,6 +22,7 @@ typedef union
 #define flag_vacuo         persistente.statusgen.flag_vacuo
 #define flag_aquecimento   persistente.statusgen.flag_aquecimento
 #define flag_datalog       persistente.statusgen.flag_datalog
+#define flag_com_internet  persistente.statusgen.flag_com_internet
 #define flag_processo_auto persistente.statusgen.flag_processo_auto
 
 typedef struct{
