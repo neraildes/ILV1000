@@ -292,6 +292,11 @@ void Shell::prompt(void)
     {
       processo.connecting(); 
     }
+    else if (parametro == "LOCALIP")
+    {
+      blkPrint("IP address: ");
+      blkPrintln(WiFi.localIP().toString()); 
+    }    
     else if (parametro == "ALL")
     {
       parametro = extraiProximoParametro(&buffer, ' ');
@@ -662,6 +667,7 @@ void Shell::prompt(void)
       blkPrintln(" Blynk   - Exibe se o blink foi compilado.");
       blkPrintln(" All     - Liga <on> ou desliga <off> todos.");
       blkPrintln(" SetWifi - Configura a conexão Wifi.");
+      blkPrintln(" LocalIP - Exibe o ip local do aparelho");
       blkPrintln("---------------------------------------------");
     }
     else if (parametro == "CODES")
