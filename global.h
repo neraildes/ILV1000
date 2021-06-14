@@ -146,7 +146,7 @@ const String SUFIXO[4] = { ".",
 #define CODE_LIOFILIZAR_AUTO_OFF 101
 #define CODE_DEFAULT_FACTORE     145
 #define CODE_SETWIFI             200
-
+#define CODE_NET_INFO            210
 
 
 

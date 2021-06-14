@@ -155,7 +155,6 @@ void doBlynkRun();
 void doShell();
 void doProcesso();
 //void doAutoRelay();
-void exibeRevisao();
 void debugFlags();
 void loadDefaultFactory();
 void loadDefaultUser();
@@ -163,6 +162,7 @@ void ControleDinamicoDeTemperatura();
 bool ControleNTCLigaAquecimento(); 
 bool ControleVacuoLigaAquecimento(); 
 bool ControleCondensadorLigaVacuo(); 
+void letreiro(String frase);
   
 
 // The setup() function runs once each time the micro-controller starts
@@ -192,8 +192,9 @@ void setup()
 
   processo.init();  //Conecta com a Internet
   comandos.empresa();
-  processo.println("Aguarde, conectando...");
-  exibeRevisao();
+  processo.println("Aguarde, conectando..."); 
+  letreiro("JJ CIENTIFICA");
+  letreiro(versao); 
   //--------------------------------------------------
 
 
@@ -286,6 +287,11 @@ void setup()
   
   buzzer = 100;
 
+
+  comandos.blkPrintln("JJ CIENTIFICA.");
+  comandos.blkPrint("Versão - ");comandos.blkPrintln(versao);
+  comandos.blkPrint("SSID : ");comandos.blkPrintln(WiFi.SSID());
+  comandos.blkPrint("IP address ");comandos.blkPrintln(WiFi.localIP().toString());
 
   
 }
@@ -1018,6 +1024,16 @@ bool ControleNTCLigaAquecimento()
     else if (codigo == CODE_SETWIFI){
        processo.connecting(); 
     }    
+    else if (codigo == CODE_NET_INFO)
+    {
+      String frase;
+      frase = "SSID ";
+      frase+= WiFi.SSID();
+      letreiro(frase);
+      frase = "IP ADDRESS  ";
+      frase+=WiFi.localIP().toString();
+      letreiro(frase);
+    }
     else if (codigo == CODE_NULL)
     {
       funcao = FUNCAO_SHOWMESSAGE;
@@ -1255,6 +1271,7 @@ bool ControleNTCLigaAquecimento()
           case CODE_TEMPO_OFF_VIEW:
             strcpy(texto, "TOFF");
             break;
+          case CODE_NET_INFO:  
           case CODE_SETWIFI:  
             strcpy(texto, "REDE");
             break;          
@@ -1291,6 +1308,7 @@ bool ControleNTCLigaAquecimento()
           case CODE_TEMPO_ON_VIEW:
           case CODE_TEMPO_OFF_VIEW:
           case CODE_SETWIFI:
+          case CODE_NET_INFO:
             executaTarefa(codigo, 0);
             flag_zerar = true; //Zera variável de quantidade de entradas;
             break;
@@ -1509,32 +1527,7 @@ bool ControleNTCLigaAquecimento()
 
   }
 
-
-  void exibeRevisao()
-  {
-    bool flag_abandona = false;
-    while (1) {
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      flag_abandona = seteSegmentos.sendDisplayMessage("JJ CIENTIFICA", NORMAL);
-      seteSegmentos.sendSingle(extra74HC595.chip.value);
-      seteSegmentos.show();
-      if (flag_abandona)break;
-    }
-    while (1) {
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      seteSegmentos.sendDisplay("    ", NORMAL);
-      flag_abandona = seteSegmentos.sendDisplayMessage(versao, NORMAL);
-      seteSegmentos.sendSingle(extra74HC595.chip.value);
-      seteSegmentos.show();
-      if (flag_abandona)break;
-    }
-  }
-
-
-
+  
   void debugFlags() {
     Serial.println(extra74HC595.chip.value, BIN);
     Serial.print("flag_comum=");
@@ -1614,3 +1607,23 @@ bool ControleNTCLigaAquecimento()
       //SensoresAtuadores[i].value   = 0.0;
     }
   }
+
+
+void letreiro(String frase)
+{      
+     bool flag_abandona; 
+     
+     funcao = FUNCAO_SHOWMESSAGE;
+     thDisplay.enabled=false;
+     while (1) {
+        seteSegmentos.sendDisplay("    ", NORMAL);
+        seteSegmentos.sendDisplay("    ", NORMAL);
+        seteSegmentos.sendDisplay("    ", NORMAL);
+        flag_abandona = seteSegmentos.sendDisplayMessage(frase, NORMAL);        
+        seteSegmentos.sendSingle(extra74HC595.chip.value);
+        seteSegmentos.show();
+        if (flag_abandona)break;        
+     }
+     tempoDecorrido=0;
+     thDisplay.enabled=true;  
+}

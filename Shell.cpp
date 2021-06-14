@@ -699,6 +699,7 @@ void Shell::prompt(void)
       blkPrintln("Ativar modo Manual......101");
       blkPrintln("Carregar valores padrão.145");
       blkPrintln("Modo configura WiFi.....200");
+      blkPrintln("Informações da rede.....210");
       blkPrintln("---------------------------");
     }
     else if (parametro == "EMPRESA")
