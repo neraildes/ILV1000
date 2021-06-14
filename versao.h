@@ -1,6 +1,6 @@
 // arquivo criado pelo script versionar.sh
-// neraildes - Fri, 11 Jun 2021 21:13:10 -0300
+// neraildes - Mon, 14 Jun 2021 19:38:35 -0300
 #ifndef VERSAO_H
 #define	VERSAO_H
-#define FVERSION "ATUAL 1.0.19_BETA"
+#define FVERSION "ATUAL 1.0.20_BETA"
 #endif
