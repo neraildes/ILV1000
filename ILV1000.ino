@@ -231,7 +231,7 @@ void setup()
   thProcesso.setInterval(350);
 
   thGrava10minutos.onRun(doGrava10minutos);
-  thGrava10minutos.setInterval(1000 * 60 * 10); //Grava após 10 minutos
+  thGrava10minutos.setInterval(1000 * 60 * 10); //Grava após 10 minutos 
 
   //thAutoRelay.onRun(doAutoRelay);
   //thAutoRelay.setInterval(400);
@@ -436,8 +436,9 @@ void Gerenciador_de_Tempo() {
 void doGrava10minutos() {
   if (flag_processo_auto)
   {
+    Serial.println("Vou gravar agora os 10 minutos...");
     persistente.save();
-    delay(500);    
+    buzzer=1000;
   }
 }
 
@@ -448,8 +449,8 @@ void doProcesso() {
   //Salva estado da liofilização
   if (memoFlags != (persistente.statusgen.value & 0b11100000))
   {
-    comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
-    Serial.println(persistente.statusgen.value, BIN);
+    //comandos.blkPrintln("Gravando Status (Por mudança de estado.)...");
+    //Serial.println(persistente.statusgen.value, BIN);
     persistente.save();
     memoFlags = (persistente.statusgen.value & 0b11100000);
     delay(1000);
@@ -1494,9 +1495,10 @@ bool ControleNTCLigaAquecimento()
   }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    bool flag_connected = false;
     void doBlynkRun() {
+         #ifdef COM_BLYNK_WIFI
          processo.run(); 
+         #endif
     }
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

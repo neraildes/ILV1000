@@ -167,8 +167,8 @@ void Shell::prompt(void)
   if ((Serial.available()) || (flag_brx == true))
   {
     a = Serial.read();
-    b = Serial.read();
-    c = Serial.read();
+    //b = Serial.read();
+    //c = Serial.read();
 
     flag_hora = false;
 
@@ -232,9 +232,11 @@ void Shell::prompt(void)
         }
         else
         {
+          /*
           Serial.println(toascii(a));
           Serial.println(toascii(b));
           Serial.println(toascii(c));
+          */
         }
 
 
@@ -460,13 +462,25 @@ void Shell::prompt(void)
       else if (parametro == "/ALL")
       {
         blkPrintln("--------------------------");
+        blkPrintln("Valores atuais");
         for (uint8_t i = 0; i < MAXDEVICE; i++)
         {
           blkPrint(DEVICE[i]);
           blkPrint(" = ");
-          blkPrint(Relay_Valor_Composto(i), 1);
+          blkPrint(Relay_Valor_Composto(i), 2);
           blkPrintln(SUFIXO[i]);
         }
+        blkPrintln("- - - - - - - - - - - - - ");
+        blkPrintln("Valores de SetPoint");
+        for (uint8_t i = 0; i < MAXDEVICE; i++)
+        {
+          blkPrint(DEVICE[i]);
+          blkPrint(" = ");
+          blkPrint(SensoresAtuadores[i].setpoint, 2);
+          blkPrintln(SUFIXO[i]);
+        }
+
+        
       }
     }
     else if (parametro == "THREAD")
@@ -511,9 +525,11 @@ void Shell::prompt(void)
     }
     else if (parametro == "TIME")
     {
+      String  pq; //pra quem?
       String  hh;
       String  mm;
       String  ss;
+      pq = extraiProximoParametro(&buffer, ' ');
       hh = extraiProximoParametro(&buffer, ':');
       mm = extraiProximoParametro(&buffer, ':');
       ss = buffer;
@@ -522,19 +538,29 @@ void Shell::prompt(void)
       {
         flag_hora = true;
       }
-      else if (ss != "") //Hora completa a ser setada
+      else if (pq == "/S") //Hora completa a ser setada
+      {
+        hora = hh.toInt();
+        minuto = mm.toInt();
+        segundo = ss.toInt();
+        milisegundo = 0;        
+        blkPrintln("Tempo de Sistema Carregado!");
+      }
+      else if (pq == "/P") //Hora completa a ser setada
       {
         persistente.processoTime.hora = hh.toInt();
         persistente.processoTime.minuto = mm.toInt();
-        segundo = ss.toInt();
+        persistente.processoTime.segundo = ss.toInt();
         milisegundo = 0;
+        persistente.save();
         blkPrintln("Tempo de Processo Carregado!");
-      }
+      }  
       else
       {
-        blkPrintln("Erro de sintaxe. Utilize 'time hh:mm:ss'.");
-      }
-
+        blkPrintln("Erro de sintaxe. Utilize 'time </S-/P> hh:mm:ss'.");
+        blkPrintln("/S = Sistema.");
+        blkPrintln("/P = Processo.");        
+      }          
     }
     else if ((parametro == DEVICE[displayNumero]) && (buffer != ""))
     {
@@ -650,7 +676,7 @@ void Shell::prompt(void)
     }
     else if (parametro == "HELP")
     {
-      blkPrintln("---------------------------------------------");
+      blkPrintln("--------------------------------------------");
       blkPrintln("Digite os seguintes comandos:");
       blkPrintln(" Cls     - Limpa a tela.");
       blkPrintln(" Help    - Exibe esta ajuda.");
@@ -668,7 +694,7 @@ void Shell::prompt(void)
       blkPrintln(" All     - Liga <on> ou desliga <off> todos.");
       blkPrintln(" SetWifi - Configura a conexão Wifi.");
       blkPrintln(" LocalIP - Exibe o ip local do aparelho");
-      blkPrintln("---------------------------------------------");
+      blkPrintln("--------------------------------------------");
     }
     else if (parametro == "CODES")
     {

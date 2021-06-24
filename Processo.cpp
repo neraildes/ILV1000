@@ -1,8 +1,13 @@
+#include <FS.h>                   //this needs to be first, or it all crashes and burns...
+#include <SPIFFS.h>
 #include "processo.h"
 #include "global.h"
 #include <stddef.h>
 #include <arduino.h>
 #include "Controladores.h"
+
+
+#include <WiFi.h> 
 
 #include "persistente.h"
 
@@ -12,16 +17,33 @@
 #include "BlynkSimpleEsp32.h"
 #include <WiFiManager.h>
 
+#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
-char auth[] = "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh";
+
+char auth[] = "t-BT9gRZGcFSuu-JZz4I7FTlUCe_up1Q";
 char ssid[] = "Indka";
 char pass[] = "iub950962";
 
+//define your default values here, if there are different values in config.json, they are overwritten.
+//char mqtt_server[40];
+//char mqtt_port[6] = "8080";
+const char* blynk_token = {"t-BT9gRZGcFSuu-JZz4I7FTlUCe_up1Q"};
+
+/*Tokens
+ * Old Blynk - "Pd9SZNodRX688FDh_kTitt-nOUkYIrnh"
+ * New Blynk - "t-BT9gRZGcFSuu-JZz4I7FTlUCe_up1Q"
+ */
+
+
+//flag for saving data
+bool shouldSaveConfig = false;
+
+
 
 #define BLYNK_PRINT Serial
+#define BLYNK_WM_DEBUG    3
 WidgetTerminal terminal(V10);
 WiFiManager wifiManager;//Objeto de manipulação do wi-fi
-
 
 extern Controladores SensoresAtuadores[MAXDEVICE];
 
@@ -36,9 +58,138 @@ Processo &Processo::getInstance()
 
 
 void Processo::init()
-{
+{ 
+  #ifdef COM_BLYNK_WIFI
   Blynk.begin(auth, ssid, pass);
+  #endif
+  /*
+  //---------------------------------------------------------------------------------
+  
+  //clean FS, for testing
+  //SPIFFS.format();
+
+  //read configuration from FS json
+  Serial.println("mounting FS...");
+
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    if (SPIFFS.exists("/config.json")) {
+      //file exists, reading and loading
+      Serial.println("reading config file");
+      File configFile = SPIFFS.open("/config.json", "r");
+      if (configFile) {
+        Serial.println("opened config file");
+        size_t size = configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+
+        configFile.readBytes(buf.get(), size);
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        json.printTo(Serial);
+        if (json.success()) {
+          Serial.println("\nparsed json");
+
+          //mqtt_server = json["mqtt_server"];
+          //mqtt_port = json["mqtt_port"];
+          blynk_token = json["blynk_token"];
+        } else {
+          Serial.println("failed to load json config");
+        }
+      }
+    }
+  } else {
+    Serial.println("failed to mount FS");
+  }
+  //end read
+
+
+
+  // The extra parameters to be configured (can be either global or just in the setup)
+  // After connecting, parameter.getValue() will get you the configured value
+  // id/name placeholder/prompt default length
+  //WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+  //WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 8);
+  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 32);
+
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
+  //WiFiManager wifiManager;
+
+  //set config save notify callback
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  //add all your parameters here
+  //wifiManager.addParameter(&custom_mqtt_server);
+  //wifiManager.addParameter(&custom_mqtt_port);
+  wifiManager.addParameter(&custom_blynk_token);
+
+  //reset settings - for testing
+  wifiManager.resetSettings();
+
+  //0800 7096200
+  //40046200
+
+  //set custom ip for portal
+  wifiManager.setAPConfig(IPAddress(10,1,1,1), IPAddress(10,1,1,1), IPAddress(255,255,255,0));
+
+  //set minimu quality of signal so it ignores AP's under that quality
+  //defaults to 8%
+  wifiManager.setMinimumSignalQuality();
+
+  //sets timeout until configuration portal gets turned off
+  //useful to make it all retry or go to sleep
+  //in seconds
+  //wifiManager.setTimeout(120);
+
+  //fetches ssid and pass and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
+  //and goes into a blocking loop awaiting configuration
+  if (!wifiManager.autoConnect("MEfEvaFaraAzzahra")) {
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(5000);
+  }
+
+  //if you get here you have connected to the WiFi
+  Serial.println("connected...yeey :)");
+
+  //read updated parameters
+  //mqtt_server = custom_mqtt_server.getValue();
+  //mqtt_port = custom_mqtt_port.getValue();
+  blynk_token = custom_blynk_token.getValue();
+
+
+  Blynk.config(blynk_token);
+  Serial.println(blynk_token);
+
+  //save the custom parameters to FS
+  if (shouldSaveConfig) {
+    Serial.println("saving config");
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+    //json["mqtt_server"] = mqtt_server;
+    //json["mqtt_port"] = mqtt_port;
+    json["blynk_token"] = blynk_token;
+
+    File configFile = SPIFFS.open("/config.json", "w");
+    if (!configFile) {
+      Serial.println("failed to open config file for writing");
+    }
+
+    json.printTo(Serial);
+    json.printTo(configFile);
+    configFile.close();
+    //end save
+  }
+  */
+  //-----------------------------------------------------------------------------------------------
+    
 }
+
 
 void Processo::terminalClear() {
     terminal.clear();
@@ -79,7 +230,7 @@ void Processo::connecting(){
         }
       else{       //Se caso conectar 
         Serial.println("Conectado na Rede!!!");
-        //ESP.restart(); //Reinicia ESP após conseguir conexão na rede        
+        ESP.restart(); //Reinicia ESP após conseguir conexão na rede        
       }
 
  

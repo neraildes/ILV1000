@@ -41,7 +41,7 @@ class Processo : public WiFiManager
        void print(String text);
        void run();
        void connecting();
-       void static saveConfigCallback();
+       void static saveConfigCallback();       
        void static configModeCallback(WiFiManager *wm);
 };
 
