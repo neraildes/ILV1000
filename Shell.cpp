@@ -700,6 +700,18 @@ void Shell::prompt(void)
     {
       //blkPrintln("---------------------------");
       blkPrintln("Códigos do teclados");
+
+      for(uint8_t i=0;i<MAXCODEKEY;i++)
+         {
+         if(KeyCode[i]!="")
+           {
+           if(i<10)blkPrint("0");
+           blkPrint(i,0);
+           blkPrint("...");
+           blkPrintln(KeyCode[i]); 
+           }
+         }
+      /*
       blkPrintln("---------------------------");
       blkPrintln("Setar OffSet..............1");
       blkPrintln("Visualizar Offset.........2");
@@ -726,6 +738,7 @@ void Shell::prompt(void)
       blkPrintln("Carregar valores padrão.145");
       blkPrintln("Modo configura WiFi.....200");
       blkPrintln("Informações da rede.....210");
+      */
       blkPrintln("---------------------------");
     }
     else if (parametro == "EMPRESA")

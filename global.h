@@ -121,6 +121,8 @@ const String SUFIXO[4] = { ".",
 
 
 //---------------CODIGOS PARA DECODIFICACAO DO TECLADO MEMBRANA------------------
+#define MAXCODEKEY                35
+
 #define CODE_NULL                  0
 #define CODE_OFFSET_SETAR          1
 #define CODE_OFFSET_VIEW           2
@@ -132,7 +134,6 @@ const String SUFIXO[4] = { ".",
 #define CODE_TEMPO_ON_VIEW         8
 #define CODE_TEMPO_OFF_SETAR       9
 #define CODE_TEMPO_OFF_VIEW       10
-
 #define CODE_CONDENSADOR_ON       20
 #define CODE_CONDENSADOR_OFF      21
 #define CODE_VACUO_ON             22
@@ -142,12 +143,48 @@ const String SUFIXO[4] = { ".",
 #define CODE_DATALOG_ON           26
 #define CODE_DATALOG_OFF          27
 
-#define CODE_LIOFILIZAR_AUTO_ON  100
-#define CODE_LIOFILIZAR_AUTO_OFF 101
-#define CODE_DEFAULT_FACTORE     145
-#define CODE_SETWIFI             200
-#define CODE_NET_INFO            210
+#define CODE_LIOFILIZAR_AUTO_ON   30
+#define CODE_LIOFILIZAR_AUTO_OFF  31
+#define CODE_DEFAULT_FACTORE      32
+#define CODE_SETWIFI              33
+#define CODE_NET_INFO             34
 
+const String KeyCode[MAXCODEKEY]={"NULL",
+                          "SETAR OFFSET",
+                          "VISUALIZAR OFFSET",
+                          "SETAR SETPOINT",
+                          "VISUALIZAR SETPOINT",
+                          "SETAR HISTERESE",
+                          "VISUALIZAR HISTERESE",
+                          "SETAR TEMPO ON",
+                          "VISUALIZAR TEMPO ON",
+                          "SETAR TEMPO OFF",
+                          "VISUALIZAR TEMPO OFF",                          
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "LIGAR CONDENSADOR",
+                          "DESLIGAR CONDENSADOR",
+                          "LIGAR VACUO",
+                          "DESLIGAR VACUO",
+                          "LIGAR AQUECIMENTO",
+                          "DESLIGAR AQUECIMENTO",
+                          "LIGAR DATALOG",
+                          "DESLIGAR DATALOG",
+                          "",
+                          "",                          
+                          "MODO AUTOMATICO LIGADO",
+                          "MODO AUTOMATICO DESLIGADO",
+                          "CARREGAR PADRÃO DE FÁBRICA",
+                          "CONFIGURAR O WIFI",
+                          "INFORMAÇÕES DA INTERNET"
+                          };
 
 
 

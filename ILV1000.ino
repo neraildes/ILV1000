@@ -839,7 +839,9 @@ bool ControleNTCLigaAquecimento()
 
     if (codigo == CODE_OFFSET_SETAR) //1
     {
-      comandos.blkPrintln("Voce setou o offset em "); comandos.blkPrint(parametro);
+      comandos.blkPrint("Offset setado em "); 
+      comandos.blkPrint(parametro,2); 
+      comandos.blkPrintln(SUFIXO[displayNumero]);
       SensoresAtuadores[displayNumero].offset = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 8, parametro);
     }
@@ -848,13 +850,16 @@ bool ControleNTCLigaAquecimento()
       funcao = FUNCAO_NONE;
       SaidaAutomatica(SETA);
       SensoresAtuadores[displayNumero].status = DINAMICO;
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "OFF.S");
+      //strcpy(SensoresAtuadores[displayNumero].mensagem, "OFF.S");
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 8);
-      comandos.blkPrintln("Voce esta visualizando o Offset");
+      comandos.blkPrint(SensoresAtuadores[displayNumero].temp,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);
     }
     else if (codigo == CODE_SETPOINT_SETAR) //3
     {
-      comandos.blkPrint("Voce setou o offset em "); comandos.blkPrintln(parametro);
+      comandos.blkPrint("SetPoint setado em "); 
+      comandos.blkPrint(parametro,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);
       strcpy(SensoresAtuadores[displayNumero].mensagem, "SET.P");
       SensoresAtuadores[displayNumero].setpoint = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 0, parametro);  //20 * i + 0
@@ -866,12 +871,15 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem, "SET.P");
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0);
-      comandos.blkPrintln("Voce esta visualizando o SetPoint");
+      //comandos.blkPrintln("Voce esta visualizando o SetPoint");
+      comandos.blkPrint(SensoresAtuadores[displayNumero].temp,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);
     }
     
     else if (codigo == CODE_TEMPO_ON_SETAR) //5
     {
-      comandos.blkPrintln("Voce setou tempo do rele ligado em "); comandos.blkPrint(parametro,0); comandos.blkPrintln(" segundos.");
+      //comandos.blkPrintln("Tempo do relê ligado em "); 
+      comandos.blkPrint(parametro,0); comandos.blkPrintln(" segundo(s).");
       strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_ON = parametro;
       tempoCNT[displayNumero] = parametro;
@@ -882,15 +890,20 @@ bool ControleNTCLigaAquecimento()
       funcao = FUNCAO_NONE;
       SaidaAutomatica(SETA);
       SensoresAtuadores[displayNumero].status = DINAMICO;
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "----");
+      //strcpy(SensoresAtuadores[displayNumero].mensagem, "----");
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x0C);
-      comandos.blkPrintln("Voce esta visualizando o Tempo Ligado do Rele.");
+      //comandos.blkPrintln("Voce esta visualizando o Tempo Ligado do Rele.");
+      comandos.blkPrint(SensoresAtuadores[displayNumero].temp,0);
+      comandos.blkPrintln(" segundo(s)");      
     }
     
     else if (codigo == CODE_TEMPO_OFF_SETAR) //7
     {
-      comandos.blkPrintln("Voce setou tempo do rele desligado em "); comandos.blkPrint(parametro);comandos.blkPrintln(" segundos.");
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
+      //comandos.blkPrintln("Tempo do rele desligado em"); 
+      SensoresAtuadores[displayNumero].status = DINAMICO;
+      comandos.blkPrint(parametro,0);
+      comandos.blkPrintln(" segundo(s)");
+      //strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_OFF = parametro;
       tempoCNT[displayNumero] = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro);  //20 * i + 4
@@ -900,15 +913,18 @@ bool ControleNTCLigaAquecimento()
       funcao = FUNCAO_NONE;
       SaidaAutomatica(SETA);
       SensoresAtuadores[displayNumero].status = DINAMICO;
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "----");
+      //strcpy(SensoresAtuadores[displayNumero].mensagem, "----");
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 0x10);
-      comandos.blkPrintln("Voce esta visualizando o Tempo Desligado do Rele.");
+      //comandos.blkPrintln("Voce esta visualizando o Tempo Desligado do Rele.");
+      comandos.blkPrint(SensoresAtuadores[displayNumero].temp,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);      
     }
 
     else if (codigo == CODE_HISTERESE_SETAR) //9
     {
-      comandos.blkPrintln("Voce setou a histerese em "); comandos.blkPrint(parametro);
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "HIST");
+      comandos.blkPrint("Histerese setado em "); 
+      comandos.blkPrint(parametro,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);
       SensoresAtuadores[displayNumero].histerese = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 4, parametro);  //20 * i + 4
     }
@@ -919,7 +935,8 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem, "HIST");
       SensoresAtuadores[displayNumero].temp = hardDisk.EEPROMReadFloat(20 * displayNumero + 4);
-      comandos.blkPrintln("Voce esta visualizando o Histerese.");
+      comandos.blkPrint(SensoresAtuadores[displayNumero].temp,2);
+      comandos.blkPrintln(SUFIXO[displayNumero]);      
     }
     else if (codigo == CODE_CONDENSADOR_ON) //20
     {
@@ -950,7 +967,7 @@ bool ControleNTCLigaAquecimento()
     }
     else if (codigo == CODE_VACUO_OFF) //23
     {
-      comandos.blkPrintln("Voce desligou a bomba de vácuo.");
+      comandos.blkPrintln("Bomba de Vácuo Desligada.");
       relay_vacuo = !false;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
@@ -959,7 +976,7 @@ bool ControleNTCLigaAquecimento()
     }
     else if (codigo == CODE_AQUECIMENTO_ON) //24
     {
-      comandos.blkPrintln("Voce ligou o aquecimento.");
+      comandos.blkPrintln("Aquecimento Ligado.");
       relay_aquecimento = !true;
       relay_comum = !true;
       tempoDecorrido = 5000;
@@ -1074,6 +1091,10 @@ bool ControleNTCLigaAquecimento()
   //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //SetPoint do Sistema
   void Pressionou_a_Tecla_A() {
+    flag_processo_auto = true;
+    comandos.blkPrintln("Processo AUTOMÁTICO ligado.");  
+
+    /*
     if (flag_processo_auto)comandos.blkPrint("Cancelando modo Automático.");
     flag_processo_auto = false;
     //flag_vacuo=false;
@@ -1089,6 +1110,7 @@ bool ControleNTCLigaAquecimento()
       flag_condensador = true;
       comandos.blkPrintln("Ligando condensador.");
     }
+    */
 
 
   }
@@ -1096,6 +1118,15 @@ bool ControleNTCLigaAquecimento()
   //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //Histerese do sistema
   void Pressionou_a_Tecla_B() {
+    flag_processo_auto = false;
+    comandos.blkPrintln("Processo AUTOMÁTICO desligado.");  
+    flag_comum = false;
+    flag_condensador = false;
+    flag_vacuo = false;
+    flag_aquecimento = false;
+
+
+    /*
     if (flag_processo_auto)comandos.blkPrint("Cancelando modo Automático.");
     flag_processo_auto = false;
     //flag_aquecimento=false;
@@ -1111,14 +1142,15 @@ bool ControleNTCLigaAquecimento()
       flag_vacuo = true;
       comandos.blkPrintln("Ligando bomba de vácuo.");
     }
+    */
   }
 
   //====================================================================================
   //Code do Sistema
   void Pressionou_a_Tecla_C() {
+    comandos.blkPrintln("Modo de digitação de Código.");
     if(funcaoMemo!=FUNCAO_CODIGO)
-      { 
-      comandos.blkPrintln("Modo de digitação de Código");
+      {      
       comandos.blkPrintln("Se não souber o código, digite");
       comandos.blkPrintln("no prompt de comandos 'CODES'.");
       }
@@ -1223,9 +1255,17 @@ bool ControleNTCLigaAquecimento()
       if (enterDoKeypad == 0)
       {
         tempoDecorrido = 2000;
-        Serial.print("Você digitou o codigo ");
-        Serial.println(SensoresAtuadores[displayNumero].temp, 3);
         codigo = round(SensoresAtuadores[displayNumero].temp * 1000);
+        Serial.print("Código Digitado = ");
+        Serial.println(SensoresAtuadores[displayNumero].temp, 3);
+        Serial.print(KeyCode[(uint8_t)codigo]);
+        if((uint8_t)codigo<=10)
+          {
+          Serial.print(" do ");
+          Serial.print(DEVICE[displayNumero]);
+          }
+        Serial.println(".");
+        
 
         switch ((uint16_t)codigo)
         {
@@ -1270,7 +1310,7 @@ bool ControleNTCLigaAquecimento()
             break;
           case CODE_TEMPO_OFF_SETAR:
           case CODE_TEMPO_OFF_VIEW:
-            strcpy(texto, "TOFF");
+            strcpy(texto, "T.OFF");
             break;
           case CODE_NET_INFO:  
           case CODE_SETWIFI:  
@@ -1320,8 +1360,8 @@ bool ControleNTCLigaAquecimento()
       {
         tempoDecorrido = 2000;
         SensoresAtuadores[displayNumero].status = NORMAL;
-        Serial.print("Com o parametro ");
-        Serial.println(SensoresAtuadores[displayNumero].temp, 3);
+        //Serial.print("Parâmetro = ");
+        //Serial.println(SensoresAtuadores[displayNumero].temp, 3);
         parametro = round(SensoresAtuadores[displayNumero].temp * 1000);
         flag_zerar = true; //Zera variável de quantidade de entradas;
         executaTarefa(codigo, parametro);
@@ -1555,28 +1595,28 @@ bool ControleNTCLigaAquecimento()
     //------------------COMUM--------------------------------
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_SET,     0.0);  //SetPoint
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_HIS,     1.0);  //Histerese Volts
-    hardDisk.EEPROMWriteFloat(ADD_HORARIO_OFF,     0.0);  //OFF Set Volts
+  //hardDisk.EEPROMWriteFloat(ADD_HORARIO_OFF,     0.0);  //OFF Set Volts
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_ATIVO,  10.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_HORARIO_INATIVO, 0.0);  //Tempo OFF
 
     //-----------------CONDENSADOR----------------------------
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_SET,   -15.0);  //SetPoint Condensador
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_HIS,     5.0);  //Histerese Condensador
-    hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_OFF,     0.0);  //Off set condensador
+  //hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_OFF,     0.0);  //Off set condensador
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_ATIVO,  10.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_CONDENSADOR_INATIVO, 0.0);  //Tempo OFF
 
     //---------------------VACUO-------------------------
     hardDisk.EEPROMWriteFloat(ADD_VACUO_SET, 1300.0);     //SetPoint VACUO
     hardDisk.EEPROMWriteFloat(ADD_VACUO_HIS, 200.0);      //Histerese VACUO
-    hardDisk.EEPROMWriteFloat(ADD_VACUO_OFF, 0.0);        //Off Set VACUO
+  //hardDisk.EEPROMWriteFloat(ADD_VACUO_OFF, 0.0);        //Off Set VACUO
     hardDisk.EEPROMWriteFloat(ADD_VACUO_ATIVO,    10.0);     //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_VACUO_INATIVO,   0.0);   //Tempo OFF
 
     //--------------------NTC---------------------------------
     hardDisk.EEPROMWriteFloat(ADD_NTC_SET,     35.0);  //SetPoint NTC
     hardDisk.EEPROMWriteFloat(ADD_NTC_HIS,      1.0);  //Histerese NTC
-    hardDisk.EEPROMWriteFloat(ADD_NTC_OFF,      0.0);  //Off set NTC
+  //hardDisk.EEPROMWriteFloat(ADD_NTC_OFF,      0.0);  //Off set NTC
     hardDisk.EEPROMWriteFloat(ADD_NTC_ATIVO,   10.0);  //Tempo ON
     hardDisk.EEPROMWriteFloat(ADD_NTC_INATIVO, 20.0);  //Tempo OFF
 
@@ -1628,4 +1668,9 @@ void letreiro(String frase)
      }
      tempoDecorrido=0;
      thDisplay.enabled=true;  
+}
+
+
+String codeFunction(uint16_t code){
+
 }
