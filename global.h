@@ -134,14 +134,17 @@ const String SUFIXO[4] = { ".",
 #define CODE_TEMPO_ON_VIEW         8
 #define CODE_TEMPO_OFF_SETAR       9
 #define CODE_TEMPO_OFF_VIEW       10
-#define CODE_CONDENSADOR_ON       20
-#define CODE_CONDENSADOR_OFF      21
-#define CODE_VACUO_ON             22
-#define CODE_VACUO_OFF            23
-#define CODE_AQUECIMENTO_ON       24
-#define CODE_AQUECIMENTO_OFF      25
-#define CODE_DATALOG_ON           26
-#define CODE_DATALOG_OFF          27
+
+#define CODE_COMUM_ON             20
+#define CODE_COMUM_OFF            21
+#define CODE_CONDENSADOR_ON       22
+#define CODE_CONDENSADOR_OFF      23
+#define CODE_VACUO_ON             24
+#define CODE_VACUO_OFF            25
+#define CODE_AQUECIMENTO_ON       26
+#define CODE_AQUECIMENTO_OFF      27
+#define CODE_DATALOG_ON           28
+#define CODE_DATALOG_OFF          29
 
 #define CODE_LIOFILIZAR_AUTO_ON   30
 #define CODE_LIOFILIZAR_AUTO_OFF  31
@@ -169,6 +172,8 @@ const String KeyCode[MAXCODEKEY]={"NULL",
                           "",
                           "",
                           "",
+                          "LIGAR COMUM",
+                          "DESLIGAR COMUM",                          
                           "LIGAR CONDENSADOR",
                           "DESLIGAR CONDENSADOR",
                           "LIGAR VACUO",
@@ -177,8 +182,6 @@ const String KeyCode[MAXCODEKEY]={"NULL",
                           "DESLIGAR AQUECIMENTO",
                           "LIGAR DATALOG",
                           "DESLIGAR DATALOG",
-                          "",
-                          "",                          
                           "MODO AUTOMATICO LIGADO",
                           "MODO AUTOMATICO DESLIGADO",
                           "CARREGAR PADRÃO DE FÁBRICA",

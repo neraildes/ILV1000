@@ -163,6 +163,8 @@ bool ControleNTCLigaAquecimento();
 bool ControleVacuoLigaAquecimento(); 
 bool ControleCondensadorLigaVacuo(); 
 void letreiro(String frase);
+bool erroDeAlocacao(uint8_t codigo);
+
   
 
 // The setup() function runs once each time the micro-controller starts
@@ -436,9 +438,7 @@ void Gerenciador_de_Tempo() {
 void doGrava10minutos() {
   if (flag_processo_auto)
   {
-    Serial.println("Vou gravar agora os 10 minutos...");
     persistente.save();
-    buzzer=1000;
   }
 }
 
@@ -880,7 +880,7 @@ bool ControleNTCLigaAquecimento()
     {
       //comandos.blkPrintln("Tempo do relê ligado em "); 
       comandos.blkPrint(parametro,0); comandos.blkPrintln(" segundo(s).");
-      strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
+      //strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_ON = parametro;
       tempoCNT[displayNumero] = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x0C, parametro);  //20 * i + 4
@@ -899,11 +899,8 @@ bool ControleNTCLigaAquecimento()
     
     else if (codigo == CODE_TEMPO_OFF_SETAR) //7
     {
-      //comandos.blkPrintln("Tempo do rele desligado em"); 
-      SensoresAtuadores[displayNumero].status = DINAMICO;
       comandos.blkPrint(parametro,0);
       comandos.blkPrintln(" segundo(s)");
-      //strcpy(SensoresAtuadores[displayNumero].mensagem, "SET ");
       SensoresAtuadores[displayNumero].tempo_OFF = parametro;
       tempoCNT[displayNumero] = parametro;
       hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro);  //20 * i + 4
@@ -938,10 +935,83 @@ bool ControleNTCLigaAquecimento()
       comandos.blkPrint(SensoresAtuadores[displayNumero].temp,2);
       comandos.blkPrintln(SUFIXO[displayNumero]);      
     }
+
+    
+    else if ((codigo == CODE_COMUM_ON)||
+             (codigo == CODE_CONDENSADOR_ON)||
+             (codigo == CODE_VACUO_ON)||
+             (codigo == CODE_AQUECIMENTO_ON)){                
+             uint8_t elevado;
+             /*
+             bool flag_ErrorDisplay=false; 
+             if(((codigo==20)||(codigo==21)) && displayNumero!=0) flag_ErrorDisplay=true;
+             if(((codigo==22)||(codigo==23)) && displayNumero!=1) flag_ErrorDisplay=true;
+             if(((codigo==24)||(codigo==25)) && displayNumero!=2) flag_ErrorDisplay=true;
+             if(((codigo==26)||(codigo==27)) && displayNumero!=3) flag_ErrorDisplay=true;
+             if(flag_ErrorDisplay)
+               {
+               tempoDecorrido=3000;
+               funcao = FUNCAO_SHOWMESSAGE;
+               strcpy(SensoresAtuadores[displayNumero].mensagem,  "Erro");
+               strcpy(SensoresAtuadores[displayNumero].mensagem1, "----");
+               comandos.blkPrintln("Ocorreu Erro!");
+               comandos.blkPrintln("Esse não é o display correto!");
+               return;
+               }
+             */
+             if(erroDeAlocacao(codigo)) return;
+             
+             elevado = pow2(displayNumero);              
+             persistente.statusgen.value |= elevado;
+             tempoDecorrido = 5000;
+             SensoresAtuadores[displayNumero].status = DINAMICO;
+             strcpy(SensoresAtuadores[displayNumero].mensagem1, " ON ");
+             funcao = FUNCAO_SHOWMESSAGE;   
+   }
+
+    else if ((codigo == CODE_COMUM_OFF)||
+             (codigo == CODE_CONDENSADOR_OFF)||
+             (codigo == CODE_VACUO_OFF)||
+             (codigo == CODE_AQUECIMENTO_OFF)){  
+             uint8_t elevado;
+             
+             if(erroDeAlocacao(codigo)) return;   
+                                              
+             elevado = pow2(displayNumero);              
+             persistente.statusgen.value &= ~elevado;
+             tempoDecorrido = 5000;
+             SensoresAtuadores[displayNumero].status = DINAMICO;
+             strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
+             funcao = FUNCAO_SHOWMESSAGE;   
+   }
+   
+
+
+/*
+
+        elevado = pow2(releNum);
+
+        parametro = extraiProximoParametro(&buffer, ' ');
+        //Serial.print("Antes statusgen.value  =");Serial.println(persistente.statusgen.value,BIN);
+        if (parametro == "ON")
+        {
+          persistente.statusgen.value |= elevado;
+        }
+        else if (parametro == "OFF")
+        {
+          persistente.statusgen.value &= ~elevado;
+        }
+
+
+
+
+
+   
     else if (codigo == CODE_CONDENSADOR_ON) //20
     {
-      comandos.blkPrintln("Voce ligou o condensador.");
-      relay_condensador = !true;
+      comandos.blkPrintln("Condensador Ligado.");
+      //relay_condensador = !true;
+      flag_condensador = true;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "ON  ");
@@ -949,8 +1019,9 @@ bool ControleNTCLigaAquecimento()
     }
     else if (codigo == CODE_CONDENSADOR_OFF) //21
     {
-      comandos.blkPrintln("Voce desligou o condensador.");
-      relay_condensador = !false;
+      comandos.blkPrintln("Condensador Desligado.");
+      //relay_condensador = !false;
+      flag_condensador=false;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
@@ -958,8 +1029,9 @@ bool ControleNTCLigaAquecimento()
     }
     else if (codigo == CODE_VACUO_ON) //22
     {
-      comandos.blkPrintln("Voce ligou a bomba de vácuo.");
-      relay_vacuo = !true;
+      comandos.blkPrintln("Bomba de Vácuo Ligada.");
+      //relay_vacuo = !true;
+      flag_vacuo = true;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "ON  ");
@@ -968,7 +1040,8 @@ bool ControleNTCLigaAquecimento()
     else if (codigo == CODE_VACUO_OFF) //23
     {
       comandos.blkPrintln("Bomba de Vácuo Desligada.");
-      relay_vacuo = !false;
+      //relay_vacuo = !false;
+      flag_vacuo = false;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
@@ -977,8 +1050,8 @@ bool ControleNTCLigaAquecimento()
     else if (codigo == CODE_AQUECIMENTO_ON) //24
     {
       comandos.blkPrintln("Aquecimento Ligado.");
-      relay_aquecimento = !true;
-      relay_comum = !true;
+      flag_aquecimento = true;
+      flag_comum = true;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "ON  ");
@@ -986,18 +1059,26 @@ bool ControleNTCLigaAquecimento()
     }
     else if (codigo == CODE_AQUECIMENTO_OFF) //25
     {
-      comandos.blkPrintln("Voce desligou o aquecimento.");
-      relay_aquecimento = !false;
-      relay_comum = !false;
+      comandos.blkPrintln("Aquecimento Desligado.");
+      flag_aquecimento = false;
+      flag_comum = false;
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
       funcao = FUNCAO_SHOWMESSAGE;
     }
+
+
+*/
+
+
+
+    
     else if (codigo == CODE_DATALOG_ON) //26
     {
       //Colocar função aqui.
-      comandos.blkPrintln("Voce ligou o datalog.");
+      comandos.blkPrintln("Datalog Ligado.");
+      comandos.blkPrintln("Inoperante nesta versão!");
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "ON  ");
@@ -1006,7 +1087,7 @@ bool ControleNTCLigaAquecimento()
     else if (codigo == CODE_DATALOG_OFF) //27
     {
       //Colocar Funcao aqui.
-      comandos.blkPrintln("Voce desligou o datalog.");
+      comandos.blkPrintln("Datalog Desligado.");
       tempoDecorrido = 5000;
       SensoresAtuadores[displayNumero].status = DINAMICO;
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
@@ -1021,19 +1102,15 @@ bool ControleNTCLigaAquecimento()
       persistente.processoTime.hora=0;
       persistente.processoTime.minuto=0;
       persistente.save();
-      comandos.blkPrintln("Voce ligou o modo automático do Liofilizador");
-      tempoDecorrido = 3000;
+      comandos.blkPrintln("Modo Automático do Liofilizador Ligado.");
       flag_processo_auto = true;
-      strcpy(SensoresAtuadores[displayNumero].mensagem1, " ON ");
-      funcao = FUNCAO_SHOWMESSAGE;
+      comandos.mensagemUniversal("AUTO"," ON ");
+      
     }
     else if (codigo == CODE_LIOFILIZAR_AUTO_OFF) //101
     {
-      comandos.blkPrintln("Voce desligou o modo automático do Liofilizador");
-      tempoDecorrido = 3000;
       flag_processo_auto = false;
-      strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
-      funcao = FUNCAO_SHOWMESSAGE;
+      comandos.mensagemUniversal("AUTO","OFF ");      
     }
     else if (codigo == CODE_DEFAULT_FACTORE) //145
     {
@@ -1057,16 +1134,13 @@ bool ControleNTCLigaAquecimento()
       funcao = FUNCAO_SHOWMESSAGE;
       SaidaAutomatica(SETA);
       strcpy(SensoresAtuadores[displayNumero].mensagem1, "NULL");
-      comandos.blkPrintln("Voce entrou com parâmetro nulo!");
+      comandos.blkPrintln("Parâmetro nulo!");
       buzzer = 1000;
       comandos.blkPrintln("Codigo invalido!");
     }
-
-
-
-
-
 }
+
+
    
 
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -1092,6 +1166,7 @@ bool ControleNTCLigaAquecimento()
   //SetPoint do Sistema
   void Pressionou_a_Tecla_A() {
     flag_processo_auto = true;
+    comandos.mensagemUniversal("AUTO"," ON ");
     comandos.blkPrintln("Processo AUTOMÁTICO ligado.");  
 
     /*
@@ -1111,14 +1186,13 @@ bool ControleNTCLigaAquecimento()
       comandos.blkPrintln("Ligando condensador.");
     }
     */
-
-
   }
 
   //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //Histerese do sistema
   void Pressionou_a_Tecla_B() {
     flag_processo_auto = false;
+    comandos.mensagemUniversal("AUTO","OFF ");
     comandos.blkPrintln("Processo AUTOMÁTICO desligado.");  
     flag_comum = false;
     flag_condensador = false;
@@ -1269,6 +1343,10 @@ bool ControleNTCLigaAquecimento()
 
         switch ((uint16_t)codigo)
         {
+          case CODE_COMUM_ON:
+          case CODE_COMUM_OFF:
+            strcpy(texto, " CO. ");
+            break;          
           case CODE_CONDENSADOR_ON:
           case CODE_CONDENSADOR_OFF:
             strcpy(texto, "Cond.");
@@ -1322,16 +1400,28 @@ bool ControleNTCLigaAquecimento()
             break;
 
         }
-
-        strcpy(SensoresAtuadores[displayNumero].mensagem, texto);
-        SensoresAtuadores[displayNumero].status = DINAMICO;
-        SensoresAtuadores[displayNumero].temp = 0;
-        enterDoKeypad++;
-
+        if((codigo==CODE_LIOFILIZAR_AUTO_ON)||(codigo==CODE_LIOFILIZAR_AUTO_OFF))
+          {
+            for(uint8_t i=0;i<MAXDEVICE;i++)
+               {
+                 strcpy(SensoresAtuadores[i].mensagem, texto);
+                 SensoresAtuadores[i].status = DINAMICO;
+                 SensoresAtuadores[i].temp = 0;                 
+               }
+          }
+          else
+          {
+            strcpy(SensoresAtuadores[displayNumero].mensagem, texto);
+            SensoresAtuadores[displayNumero].status = DINAMICO;
+            SensoresAtuadores[displayNumero].temp = 0;           
+          }
+         enterDoKeypad++;
         //Lista de comandos sem parâmetros
         switch ((uint16_t)codigo)
         {
           case CODE_NULL:
+          case CODE_COMUM_ON:
+          case CODE_COMUM_OFF:
           case CODE_CONDENSADOR_ON:
           case CODE_CONDENSADOR_OFF:
           case CODE_VACUO_ON:
@@ -1349,7 +1439,7 @@ bool ControleNTCLigaAquecimento()
           case CODE_TEMPO_ON_VIEW:
           case CODE_TEMPO_OFF_VIEW:
           case CODE_SETWIFI:
-          case CODE_NET_INFO:
+          case CODE_NET_INFO:            
             executaTarefa(codigo, 0);
             flag_zerar = true; //Zera variável de quantidade de entradas;
             break;
@@ -1671,6 +1761,48 @@ void letreiro(String frase)
 }
 
 
-String codeFunction(uint16_t code){
-
+bool erroDeAlocacao(uint8_t codigo){
+     bool flag_ErrorDisplay=false;
+     uint8_t displayErrado=0;
+     
+     if(((codigo==20)||(codigo==21))&&(displayNumero!=0))  
+       {
+       flag_ErrorDisplay=true; 
+       displayErrado=0;
+       }
+            
+     if(((codigo==22)||(codigo==23)) && displayNumero!=1) 
+       {
+       flag_ErrorDisplay=true; 
+       displayErrado=1;
+       }
+     
+     if(((codigo==24)||(codigo==25)) && displayNumero!=2) 
+       {
+       flag_ErrorDisplay=true;
+       displayErrado=2;
+       }
+       
+     if(((codigo==26)||(codigo==27)) && displayNumero!=3) 
+       {
+       flag_ErrorDisplay=true;
+       displayErrado=3;
+       }
+       
+     if(flag_ErrorDisplay)
+       {
+       tempoDecorrido=3000;
+       funcao = FUNCAO_SHOWMESSAGE;
+       strcpy(SensoresAtuadores[displayNumero].mensagem,  "Erro");
+       strcpy(SensoresAtuadores[displayNumero].mensagem1, "----");
+       comandos.blkPrintln("Ocorreu Erro!");
+       comandos.blkPrint("Esse não é o display ");
+       comandos.blkPrint(DEVICE[displayErrado]);
+       comandos.blkPrintln(".");
+       return true;
+       }
+     else
+       {
+       return false;   
+       }
 }

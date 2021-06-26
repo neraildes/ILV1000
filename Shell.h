@@ -26,6 +26,7 @@ class Shell{
       void setAPCallback();
       void setSaveConfigCallback();
       void connecting();
+      void mensagemUniversal(char msg[10], char msg1[10]);
   private:
 
 };

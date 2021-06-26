@@ -57,6 +57,10 @@ bool flag_hora   = false;
 
 extern char versao[] ;
 
+extern uint32_t tempoDecorrido;
+
+extern uint8_t funcao;
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
@@ -417,10 +421,12 @@ void Shell::prompt(void)
         persistente.processoTime.segundo = 0;
         persistente.save();
         flag_processo_auto = true;
+        mensagemUniversal("AUTO"," ON ");
       }
       else if (parametro == "OFF")
       {
         flag_processo_auto = false;
+        mensagemUniversal("AUTO","OFF ");
       }
       else
       {
@@ -841,16 +847,15 @@ String Shell::extraiProximoParametro(String *buffer, char caracter) {
   return parametro;
 }
 
-/*
-void Shell::connecting(){
-     ObjBlynk.connecting();
-}
 
-void Shell::setAPCallback(){
-     ObjBlynk.s1();
+void Shell::mensagemUniversal(char msg[10], char msg1[10]){
+     for(uint8_t i=0;i<MAXDEVICE;i++)
+        {
+          strcpy(SensoresAtuadores[i].mensagem, msg);
+          strcpy(SensoresAtuadores[i].mensagem1, msg1);          
+          SensoresAtuadores[i].status = DINAMICO;
+          SensoresAtuadores[i].temp = 0;                 
+        }
+     funcao = FUNCAO_SHOWMESSAGE;   
+     tempoDecorrido = 3000; 
 }
-
-void Shell::setSaveConfigCallback(){
-     ObjBlynk.s2();
-}
-*/
