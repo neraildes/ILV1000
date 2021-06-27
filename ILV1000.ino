@@ -965,6 +965,7 @@ bool ControleNTCLigaAquecimento()
              persistente.statusgen.value |= elevado;
              tempoDecorrido = 5000;
              SensoresAtuadores[displayNumero].status = DINAMICO;
+             SensoresAtuadores[displayNumero].ignore = false;
              strcpy(SensoresAtuadores[displayNumero].mensagem1, " ON ");
              funcao = FUNCAO_SHOWMESSAGE;   
    }
@@ -981,6 +982,7 @@ bool ControleNTCLigaAquecimento()
              persistente.statusgen.value &= ~elevado;
              tempoDecorrido = 5000;
              SensoresAtuadores[displayNumero].status = DINAMICO;
+             SensoresAtuadores[displayNumero].ignore = false;
              strcpy(SensoresAtuadores[displayNumero].mensagem1, "OFF ");
              funcao = FUNCAO_SHOWMESSAGE;   
    }
@@ -1735,6 +1737,7 @@ bool ControleNTCLigaAquecimento()
       SensoresAtuadores[i].tempo_OFF = hardDisk.EEPROMReadFloat(20 * i + 0x10);
       SensoresAtuadores[i].status    = NORMAL;
       SensoresAtuadores[i].estado    = RELAY_DESLIGADO;
+      SensoresAtuadores[i].ignore    = false;
       //SensoresAtuadores[i].modo    = RELAY_LIGADO_SOBE;
       //SensoresAtuadores[i].value   = 0.0;
     }
