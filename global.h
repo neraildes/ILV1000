@@ -121,44 +121,39 @@ const String SUFIXO[4] = { ".",
 
 
 //---------------CODIGOS PARA DECODIFICACAO DO TECLADO MEMBRANA------------------
-#define MAXCODEKEY                35
+#define MAXCODEKEY                36
 
-#define CODE_NULL                  0
-#define CODE_OFFSET_SETAR          1
-#define CODE_OFFSET_VIEW           2
-#define CODE_SETPOINT_SETAR        3
-#define CODE_SETPOINT_VIEW         4
-#define CODE_HISTERESE_SETAR       5
-#define CODE_HISTERESE_VIEW        6
+
+#define CODE_VIEW_STATUS_AUTOMATIC 0
+#define CODE_SETPOINT_SETAR        1
+#define CODE_SETPOINT_VIEW         2
+#define CODE_HISTERESE_SETAR       3
+#define CODE_HISTERESE_VIEW        4
+#define CODE_OFFSET_SETAR          5
+#define CODE_OFFSET_VIEW           6
 #define CODE_TEMPO_ON_SETAR        7
 #define CODE_TEMPO_ON_VIEW         8
 #define CODE_TEMPO_OFF_SETAR       9
 #define CODE_TEMPO_OFF_VIEW       10
 
-#define CODE_COMUM_ON             20
-#define CODE_COMUM_OFF            21
-#define CODE_CONDENSADOR_ON       22
-#define CODE_CONDENSADOR_OFF      23
-#define CODE_VACUO_ON             24
-#define CODE_VACUO_OFF            25
-#define CODE_AQUECIMENTO_ON       26
-#define CODE_AQUECIMENTO_OFF      27
-#define CODE_DATALOG_ON           28
-#define CODE_DATALOG_OFF          29
+#define CODE_DEVICE_ON            20
+#define CODE_DEVICE_OFF           21
 
 #define CODE_LIOFILIZAR_AUTO_ON   30
 #define CODE_LIOFILIZAR_AUTO_OFF  31
 #define CODE_DEFAULT_FACTORE      32
 #define CODE_SETWIFI              33
 #define CODE_NET_INFO             34
+#define CODE_NULL                 35
 
-const String KeyCode[MAXCODEKEY]={"NULL",
-                          "SETAR OFFSET",
-                          "VISUALIZAR OFFSET",
+const String KeyCode[MAXCODEKEY]={
+                          "AUTOMATIC",
                           "SETAR SETPOINT",
                           "VISUALIZAR SETPOINT",
                           "SETAR HISTERESE",
                           "VISUALIZAR HISTERESE",
+                          "SETAR OFFSET",
+                          "VISUALIZAR OFFSET",
                           "SETAR TEMPO ON",
                           "VISUALIZAR TEMPO ON",
                           "SETAR TEMPO OFF",
@@ -172,21 +167,22 @@ const String KeyCode[MAXCODEKEY]={"NULL",
                           "",
                           "",
                           "",
-                          "LIGAR COMUM",
-                          "DESLIGAR COMUM",                          
-                          "LIGAR CONDENSADOR",
-                          "DESLIGAR CONDENSADOR",
-                          "LIGAR VACUO",
-                          "DESLIGAR VACUO",
-                          "LIGAR AQUECIMENTO",
-                          "DESLIGAR AQUECIMENTO",
-                          "LIGAR DATALOG",
-                          "DESLIGAR DATALOG",
+                          "LIGAR",
+                          "DESLIGAR",                          
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
+                          "",
                           "MODO AUTOMATICO LIGADO",
                           "MODO AUTOMATICO DESLIGADO",
                           "CARREGAR PADRÃO DE FÁBRICA",
                           "CONFIGURAR O WIFI",
-                          "INFORMAÇÕES DA INTERNET"
+                          "INFORMAÇÕES DA INTERNET",
+                          "CODIGO NULO" 
                           };
 
 

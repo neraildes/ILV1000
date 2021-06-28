@@ -27,6 +27,8 @@ class Shell{
       void setSaveConfigCallback();
       void connecting();
       void mensagemUniversal(char msg[10], char msg1[10]);
+      void automaticON();
+      void automaticOFF();
   private:
 
 };

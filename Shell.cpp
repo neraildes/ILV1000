@@ -416,17 +416,11 @@ void Shell::prompt(void)
       parametro = extraiProximoParametro(&buffer, ' ');
       if (parametro == "ON")
       {
-        persistente.processoTime.hora = 0;
-        persistente.processoTime.minuto = 0;
-        persistente.processoTime.segundo = 0;
-        persistente.save();
-        flag_processo_auto = true;
-        mensagemUniversal("AUTO"," ON ");
+       automaticON();
       }
       else if (parametro == "OFF")
       {
-        flag_processo_auto = false;
-        mensagemUniversal("AUTO","OFF ");
+       automaticOFF();
       }
       else
       {
@@ -668,13 +662,6 @@ void Shell::prompt(void)
           hardDisk.EEPROMWriteFloat(20 * displayNumero + 0x10, parametro.toFloat());
         }
       }
-
-
-
-
-
-   
-
     }
     else if ((parametro == DEVICE[displayNumero]) && (buffer == ""))
     {
@@ -717,34 +704,6 @@ void Shell::prompt(void)
            blkPrintln(KeyCode[i]); 
            }
          }
-      /*
-      blkPrintln("---------------------------");
-      blkPrintln("Setar OffSet..............1");
-      blkPrintln("Visualizar Offset.........2");
-      blkPrintln("Setar SetPoint............3");
-      blkPrintln("Visualizar SetPoint.......4");
-      blkPrintln("Setar Histerese...........5");
-      blkPrintln("Visualizar Histerese......6");
-      blkPrintln("Setar Tempo Ativo.........7");
-      blkPrintln("Visualizar Tempo Ativo....8");
-      blkPrintln("Setar Tempo Inativo.......9");
-      blkPrintln("Visualizar Tempo Inativo.10");
-      //blkPrintln("- - - - - - - - - - - - - -");
-      blkPrintln("Ligar Condensador........20");
-      blkPrintln("Desligar Condensador.....21");
-      blkPrintln("Ligar Vácuo..............22");
-      blkPrintln("Desligar Vácuo...........23");
-      blkPrintln("Ligar Aquecimento........24");
-      blkPrintln("Desligar Aquecimento.....25");
-      blkPrintln("Ligar Datalog............26");
-      blkPrintln("Desligar Datalog.........27");
-      //blkPrintln("- - - - - - - - - - - - - -");
-      blkPrintln("Ativar modo Automático..100");
-      blkPrintln("Ativar modo Manual......101");
-      blkPrintln("Carregar valores padrão.145");
-      blkPrintln("Modo configura WiFi.....200");
-      blkPrintln("Informações da rede.....210");
-      */
       blkPrintln("---------------------------");
     }
     else if (parametro == "EMPRESA")
@@ -858,4 +817,34 @@ void Shell::mensagemUniversal(char msg[10], char msg1[10]){
         }
      funcao = FUNCAO_SHOWMESSAGE;   
      tempoDecorrido = 3000; 
+}
+
+void Shell::automaticON(){
+     if(flag_processo_auto==false)
+       {
+       persistente.processoTime.hora=0;
+       persistente.processoTime.minuto=0;
+       persistente.processoTime.segundo=0;
+       persistente.save();
+       blkPrintln("Modo Automático do Liofilizador Ligado.");
+       flag_processo_auto = true;
+       mensagemUniversal("AUTO"," ON ");
+       }
+     else
+       {
+       blkPrintln("Modo Automático já está em execução!");    
+       }
+}
+
+void Shell::automaticOFF(){
+     if(flag_processo_auto==true)
+       {  
+       blkPrintln("Modo Automático do Liofilizador Desligado.");
+       flag_processo_auto = false;
+       mensagemUniversal("AUTO","OFF ");
+       }
+     else
+       {
+       blkPrintln("Modo Automático já se encontra inativo!");   
+       }
 }
